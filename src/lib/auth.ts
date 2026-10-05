@@ -1,6 +1,6 @@
 import { cookies } from 'next/headers';
 import bcrypt from 'bcryptjs';
-import { db, User } from './db';
+import { supabase, User } from './supabase';
 
 const SESSION_COOKIE_NAME = 'spk_session';
 
@@ -22,10 +22,12 @@ export async function getSession(): Promise<AuthSession | null> {
     const parsed = JSON.parse(raw);
     if (!parsed?.userId) return null;
 
-    // Verify user exists in db
-    const user = db.prepare('SELECT id, name, email, role FROM users WHERE id = ?').get(parsed.userId) as
-      | { id: number; name: string; email: string; role: string }
-      | undefined;
+    // Verify user exists in Supabase
+    const { data: user } = await supabase
+      .from('users')
+      .select('id, name, email, role')
+      .eq('id', parsed.userId)
+      .single();
 
     if (!user) return null;
 

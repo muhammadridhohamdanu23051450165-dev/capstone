@@ -1,4 +1,4 @@
-import { db, Laptop, KuisionerJawaban, getLaptopPerforma } from '../db';
+import { supabase, Laptop, KuisionerJawaban, getLaptopPerforma } from '../supabase';
 import { TopsisRankedItem } from './topsis';
 
 export async function generateForTopLaptops(
@@ -29,14 +29,16 @@ export async function generateForTopLaptops(
   }
 
   for (const item of selectedItems) {
-    const laptopId = item.laptop_id;
     const laptop = item.laptop;
     if (!laptop) continue;
 
-    // Check cached explanation in database
-    const cached = db
-      .prepare('SELECT penjelasan FROM penjelasan_ai WHERE kuisioner_jawaban_id = ? AND laptop_id = ?')
-      .get(jawaban.id, laptop.id) as { penjelasan: string } | undefined;
+    // Check cached explanation in Supabase
+    const { data: cached } = await supabase
+      .from('penjelasan_ai')
+      .select('penjelasan')
+      .eq('kuisioner_jawaban_id', jawaban.id)
+      .eq('laptop_id', laptop.id)
+      .single();
 
     if (cached) {
       explanations[laptop.id] = cached.penjelasan;
@@ -46,9 +48,11 @@ export async function generateForTopLaptops(
     const narasi = await generateNarrative(laptop, jawaban, item, topCriteriaName);
 
     try {
-      db.prepare(
-        `INSERT INTO penjelasan_ai (kuisioner_jawaban_id, laptop_id, penjelasan, created_at, updated_at) VALUES (?, ?, ?, datetime('now'), datetime('now'))`
-      ).run(jawaban.id, laptop.id, narasi);
+      await supabase.from('penjelasan_ai').insert({
+        kuisioner_jawaban_id: jawaban.id,
+        laptop_id: laptop.id,
+        penjelasan: narasi,
+      });
     } catch {
       // ignore insert error if already exists
     }

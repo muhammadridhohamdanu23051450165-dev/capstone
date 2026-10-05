@@ -1,7 +1,7 @@
 import { redirect } from 'next/navigation';
 import Link from 'next/link';
 import { getSession } from '@/lib/auth';
-import { db, KuisionerJawaban, Laptop, getLaptopImageUrl } from '@/lib/db';
+import { supabase, KuisionerJawaban, Laptop, getLaptopImageUrl } from '@/lib/supabase';
 
 export default async function DashboardPage() {
   const session = await getSession();
@@ -10,12 +10,12 @@ export default async function DashboardPage() {
   }
 
   // Check if user has answered questionnaire
-  const countRow = db
-    .prepare('SELECT count(*) as count FROM kuisioner_jawaban WHERE user_id = ?')
-    .get(session.userId) as { count: number } | undefined;
-  const historyCount = countRow?.count || 0;
+  const { count: historyCount } = await supabase
+    .from('kuisioner_jawaban')
+    .select('*', { count: 'exact', head: true })
+    .eq('user_id', session.userId);
 
-  if (session.role !== 'admin' && historyCount === 0) {
+  if (session.role !== 'admin' && (!historyCount || historyCount === 0)) {
     redirect(
       '/questionnaire?info=' +
         encodeURIComponent(
@@ -25,17 +25,45 @@ export default async function DashboardPage() {
   }
 
   // Fetch all consultations for this user
-  const consultations = (db
-    .prepare('SELECT * FROM kuisioner_jawaban WHERE user_id = ? ORDER BY id DESC')
-    .all(session.userId) as KuisionerJawaban[]) || [];
+  const { data: consultationsRaw } = await supabase
+    .from('kuisioner_jawaban')
+    .select('*')
+    .eq('user_id', session.userId)
+    .order('id', { ascending: false });
+
+  const consultations = (consultationsRaw || []) as KuisionerJawaban[];
+  const consultationIds = consultations.map((c) => c.id);
+
+  // Fetch all laptops for mapping
+  const { data: allLaptopsList } = await supabase.from('laptops').select('*');
+  const laptopMap = new Map(((allLaptopsList || []) as Laptop[]).map((l) => [l.id, l]));
+
+  // Fetch topsis results for these consultations
+  const { data: allTopsis } = consultationIds.length > 0
+    ? await supabase
+        .from('hasil_topsis')
+        .select('*')
+        .in('kuisioner_jawaban_id', consultationIds)
+        .order('peringkat', { ascending: true })
+    : { data: [] };
+
+  const bestTopsisByKj = new Map<number, Laptop & { nilai_v: number; peringkat: number }>();
+  for (const t of (allTopsis || [])) {
+    if (!bestTopsisByKj.has(t.kuisioner_jawaban_id)) {
+      const laptop = laptopMap.get(t.laptop_id);
+      if (laptop) {
+        bestTopsisByKj.set(t.kuisioner_jawaban_id, {
+          ...laptop,
+          nilai_v: t.nilai_v,
+          peringkat: t.peringkat,
+        });
+      }
+    }
+  }
 
   // Get best laptop for each consultation
   const enrichedConsultations = consultations.map((item) => {
-    const bestTopsis = db
-      .prepare(
-        'SELECT ht.*, l.name, l.brand, l.price, l.condition, l.image FROM hasil_topsis ht JOIN laptops l ON ht.laptop_id = l.id WHERE ht.kuisioner_jawaban_id = ? ORDER BY ht.peringkat ASC LIMIT 1'
-      )
-      .get(item.id) as (Laptop & { nilai_v: number; peringkat: number }) | undefined;
+    const bestTopsis = bestTopsisByKj.get(item.id);
 
     return {
       ...item,

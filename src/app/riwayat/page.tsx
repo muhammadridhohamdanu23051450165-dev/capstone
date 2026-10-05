@@ -1,7 +1,7 @@
 import { redirect } from 'next/navigation';
 import Link from 'next/link';
 import { getSession } from '@/lib/auth';
-import { db, KuisionerJawaban, Laptop, getLaptopImageUrl } from '@/lib/db';
+import { supabase, KuisionerJawaban, Laptop, getLaptopImageUrl } from '@/lib/supabase';
 import { DeleteHistoryButton } from '@/components/DeleteHistoryButton';
 
 export default async function HistoryPage({
@@ -20,35 +20,59 @@ export default async function HistoryPage({
   const success = params.success;
   const error = params.error;
 
-  const countRow = db
-    .prepare('SELECT count(*) as count FROM kuisioner_jawaban WHERE user_id = ?')
-    .get(session.userId) as { count: number } | undefined;
-  const totalHistory = countRow?.count || 0;
+  const { count: countRow } = await supabase
+    .from('kuisioner_jawaban')
+    .select('*', { count: 'exact', head: true })
+    .eq('user_id', session.userId);
+  const totalHistory = countRow || 0;
 
   // Build query
-  let sql = 'SELECT * FROM kuisioner_jawaban WHERE user_id = ?';
-  const queryArgs: (string | number)[] = [session.userId];
+  let query = supabase
+    .from('kuisioner_jawaban')
+    .select('*')
+    .eq('user_id', session.userId);
 
   if (filterKondisi) {
-    sql += ' AND kondisi_pilihan = ?';
-    queryArgs.push(filterKondisi);
+    query = query.eq('kondisi_pilihan', filterKondisi);
   }
 
   if (search) {
-    sql += ' AND (judul LIKE ? OR peruntukan LIKE ?)';
-    queryArgs.push(`%${search}%`, `%${search}%`);
+    query = query.or(`judul.ilike.%${search}%,peruntukan.ilike.%${search}%`);
   }
 
-  sql += ' ORDER BY id DESC';
+  const { data: rowsData } = await query.order('id', { ascending: false });
+  const rows = (rowsData || []) as KuisionerJawaban[];
+  const rowIds = rows.map((r) => r.id);
 
-  const rows = (db.prepare(sql).all(...queryArgs) as KuisionerJawaban[]) || [];
+  // Fetch all laptops for mapping
+  const { data: allLaptopsList } = await supabase.from('laptops').select('*');
+  const laptopMap = new Map(((allLaptopsList || []) as Laptop[]).map((l) => [l.id, l]));
+
+  // Fetch topsis results for these consultations
+  const { data: allTopsis } = rowIds.length > 0
+    ? await supabase
+        .from('hasil_topsis')
+        .select('*')
+        .in('kuisioner_jawaban_id', rowIds)
+        .order('peringkat', { ascending: true })
+    : { data: [] };
+
+  const bestTopsisByKj = new Map<number, Laptop & { nilai_v: number; peringkat: number }>();
+  for (const t of (allTopsis || [])) {
+    if (!bestTopsisByKj.has(t.kuisioner_jawaban_id)) {
+      const laptop = laptopMap.get(t.laptop_id);
+      if (laptop) {
+        bestTopsisByKj.set(t.kuisioner_jawaban_id, {
+          ...laptop,
+          nilai_v: t.nilai_v,
+          peringkat: t.peringkat,
+        });
+      }
+    }
+  }
 
   const enrichedConsultations = rows.map((item) => {
-    const bestTopsis = db
-      .prepare(
-        'SELECT ht.*, l.name, l.brand, l.price, l.condition, l.image FROM hasil_topsis ht JOIN laptops l ON ht.laptop_id = l.id WHERE ht.kuisioner_jawaban_id = ? ORDER BY ht.peringkat ASC LIMIT 1'
-      )
-      .get(item.id) as (Laptop & { nilai_v: number; peringkat: number }) | undefined;
+    const bestTopsis = bestTopsisByKj.get(item.id);
 
     return {
       ...item,

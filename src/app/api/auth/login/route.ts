@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { db, User } from '@/lib/db';
+import { supabase, User } from '@/lib/supabase';
 import { verifyPassword, setSession } from '@/lib/auth';
 
 export async function POST(req: NextRequest) {
@@ -12,9 +12,13 @@ export async function POST(req: NextRequest) {
       return NextResponse.redirect(new URL('/login?error=Email dan kata sandi wajib diisi', req.url));
     }
 
-    const user = db.prepare('SELECT * FROM users WHERE email = ?').get(email) as User | undefined;
+    const { data: user } = await supabase
+      .from('users')
+      .select('*')
+      .eq('email', email)
+      .single();
 
-    if (!user || !verifyPassword(password, user.password)) {
+    if (!user || !verifyPassword(password, (user as User).password)) {
       return NextResponse.redirect(new URL('/login?error=Email atau kata sandi tidak cocok', req.url));
     }
 

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSession } from '@/lib/auth';
-import { db } from '@/lib/db';
+import { supabase } from '@/lib/supabase';
 
 export async function POST(req: NextRequest) {
   try {
@@ -48,15 +48,12 @@ export async function POST(req: NextRequest) {
     const idxPerforma = findCol(['performa', 'performakomposit', 'performascore']);
 
     let importedCount = 0;
-    const upsertStmt = db.prepare(`
-      INSERT INTO laptops (name, brand, price, performa_komposit, processor_score, vga_score, ram_gb, storage_gb, battery_hours, weight_kg, condition, created_at, updated_at)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'), datetime('now'))
-      ON CONFLICT(id) DO UPDATE SET 
-        brand=excluded.brand, price=excluded.price, performa_komposit=excluded.performa_komposit,
-        processor_score=excluded.processor_score, vga_score=excluded.vga_score, ram_gb=excluded.ram_gb,
-        storage_gb=excluded.storage_gb, battery_hours=excluded.battery_hours, weight_kg=excluded.weight_kg,
-        condition=excluded.condition, updated_at=datetime('now')
-    `);
+    const toInsert: object[] = [];
+    const toUpdate: { id: number; data: object }[] = [];
+
+    // Fetch existing laptop names
+    const { data: existingLaptops } = await supabase.from('laptops').select('id, name');
+    const existingMap = new Map((existingLaptops || []).map((l: { id: number; name: string }) => [l.name.toLowerCase(), l.id]));
 
     for (let i = 1; i < lines.length; i++) {
       const row = lines[i].split(delimiter).map((s) => s.trim().replace(/^"|"$/g, ''));
@@ -114,19 +111,31 @@ export async function POST(req: NextRequest) {
       }
 
       if (nama) {
-        // Check if exists
-        const existing = db.prepare('SELECT id FROM laptops WHERE name = ?').get(nama) as { id: number } | undefined;
-        if (existing) {
-          db.prepare(`
-            UPDATE laptops 
-            SET brand=?, price=?, performa_komposit=?, processor_score=?, vga_score=?, ram_gb=?, storage_gb=?, battery_hours=?, weight_kg=?, condition=?, updated_at=datetime('now')
-            WHERE id=?
-          `).run(merek, harga, performa, performa, performa, ram, storage, baterai, berat, kondisi, existing.id);
+        const laptopData = {
+          name: nama, brand: merek, price: harga,
+          performa_komposit: performa, processor_score: performa, vga_score: performa,
+          ram_gb: ram, storage_gb: storage, battery_hours: baterai, weight_kg: berat, condition: kondisi,
+          updated_at: new Date().toISOString(),
+        };
+
+        const existingId = existingMap.get(nama.toLowerCase());
+        if (existingId) {
+          toUpdate.push({ id: existingId, data: laptopData });
         } else {
-          upsertStmt.run(nama, merek, harga, performa, performa, performa, ram, storage, baterai, berat, kondisi);
+          toInsert.push(laptopData);
         }
         importedCount++;
       }
+    }
+
+    // Batch insert new
+    if (toInsert.length > 0) {
+      await supabase.from('laptops').insert(toInsert);
+    }
+
+    // Update existing one by one
+    for (const { id, data } of toUpdate) {
+      await supabase.from('laptops').update(data).eq('id', id);
     }
 
     return NextResponse.redirect(new URL(`/admin/dashboard?tab=laptops&success=Berhasil mengimpor ${importedCount} data laptop`, req.url));

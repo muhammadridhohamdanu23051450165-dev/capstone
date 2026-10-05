@@ -1,6 +1,6 @@
 import { redirect } from 'next/navigation';
 import { getSession } from '@/lib/auth';
-import { db, Laptop, Kriteria, User } from '@/lib/db';
+import { supabase, Laptop, Kriteria, User } from '@/lib/supabase';
 import { AdminPanelTabs } from '@/components/AdminPanelTabs';
 
 export default async function AdminDashboardPage({
@@ -19,47 +19,75 @@ export default async function AdminDashboardPage({
   const error = params.error;
 
   // Stats
-  const totalUsersRow = db.prepare('SELECT count(*) as count FROM users').get() as { count: number };
-  const totalMahasiswaRow = db
-    .prepare("SELECT count(*) as count FROM users WHERE role = 'mahasiswa'")
-    .get() as { count: number };
-  const totalLaptopsRow = db.prepare('SELECT count(*) as count FROM laptops').get() as { count: number };
-  const totalBaruRow = db
-    .prepare("SELECT count(*) as count FROM laptops WHERE condition = 'baru'")
-    .get() as { count: number };
-  const totalSecondRow = db
-    .prepare("SELECT count(*) as count FROM laptops WHERE condition = 'second'")
-    .get() as { count: number };
-  const totalKuisionerRow = db
-    .prepare('SELECT count(*) as count FROM kuisioner_jawaban')
-    .get() as { count: number };
+  const { count: totalUsers } = await supabase
+    .from('users')
+    .select('*', { count: 'exact', head: true });
 
-  // Data (converted to plain objects for Client Components)
-  const laptopsRaw = (db.prepare('SELECT * FROM laptops ORDER BY id DESC').all() as Laptop[]) || [];
-  const laptops = laptopsRaw.map((l) => ({ ...l }));
+  const { count: totalMahasiswa } = await supabase
+    .from('users')
+    .select('*', { count: 'exact', head: true })
+    .eq('role', 'mahasiswa');
 
-  const criteriaRaw = (db.prepare('SELECT * FROM kriteria ORDER BY id ASC').all() as Kriteria[]) || [];
-  const criteria = criteriaRaw.map((c) => ({ ...c }));
+  const { count: totalLaptops } = await supabase
+    .from('laptops')
+    .select('*', { count: 'exact', head: true });
 
-  const usersRaw = (db
-    .prepare(
-      `SELECT u.*, (SELECT count(*) FROM kuisioner_jawaban kj WHERE kj.user_id = u.id) as kuisioner_count 
-       FROM users u 
-       ORDER BY u.id DESC`
-    )
-    .all() as (User & { kuisioner_count: number })[]) || [];
-  const users = usersRaw.map((u) => ({ ...u }));
+  const { count: totalBaru } = await supabase
+    .from('laptops')
+    .select('*', { count: 'exact', head: true })
+    .eq('condition', 'baru');
+
+  const { count: totalSecond } = await supabase
+    .from('laptops')
+    .select('*', { count: 'exact', head: true })
+    .eq('condition', 'second');
+
+  const { count: totalKuisioner } = await supabase
+    .from('kuisioner_jawaban')
+    .select('*', { count: 'exact', head: true });
+
+  // Data
+  const { data: laptopsRaw } = await supabase
+    .from('laptops')
+    .select('*')
+    .order('id', { ascending: false });
+  const laptops = ((laptopsRaw || []) as Laptop[]).map((l) => ({ ...l }));
+
+  const { data: criteriaRaw } = await supabase
+    .from('kriteria')
+    .select('*')
+    .order('id', { ascending: true });
+  const criteria = ((criteriaRaw || []) as Kriteria[]).map((c) => ({ ...c }));
+
+  const { data: usersData } = await supabase
+    .from('users')
+    .select('*')
+    .order('id', { ascending: false });
+
+  const { data: kjData } = await supabase
+    .from('kuisioner_jawaban')
+    .select('user_id');
+
+  const userKjMap = new Map<number, number>();
+  (kjData || []).forEach((row: { user_id: number }) => {
+    userKjMap.set(row.user_id, (userKjMap.get(row.user_id) || 0) + 1);
+  });
+
+  const users = ((usersData || []) as User[]).map((u) => ({
+    ...u,
+    kuisioner_count: userKjMap.get(u.id) || 0,
+  }));
 
   return (
     <div className="max-w-7xl mx-auto py-4">
       <AdminPanelTabs
         initialTab={currentTab}
-        totalUsers={totalUsersRow?.count || 0}
-        totalMahasiswa={totalMahasiswaRow?.count || 0}
-        totalLaptops={totalLaptopsRow?.count || 0}
-        totalLaptopsBaru={totalBaruRow?.count || 0}
-        totalLaptopsSecond={totalSecondRow?.count || 0}
-        totalKuisioner={totalKuisionerRow?.count || 0}
+        totalUsers={totalUsers || 0}
+        totalMahasiswa={totalMahasiswa || 0}
+        totalLaptops={totalLaptops || 0}
+        totalLaptopsBaru={totalBaru || 0}
+        totalLaptopsSecond={totalSecond || 0}
+        totalKuisioner={totalKuisioner || 0}
         laptops={laptops}
         criteria={criteria}
         users={users}

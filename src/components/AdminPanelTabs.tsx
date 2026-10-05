@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Laptop, Kriteria, User } from '@/lib/db';
+import { Laptop, Kriteria, User } from '@/lib/supabase';
 
 interface Props {
   initialTab: string;

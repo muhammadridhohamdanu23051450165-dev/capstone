@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { db } from '@/lib/db';
+import { supabase } from '@/lib/supabase';
 import { hashPassword, setSession } from '@/lib/auth';
 
 export async function POST(req: NextRequest) {
@@ -28,7 +28,12 @@ export async function POST(req: NextRequest) {
     }
 
     // Check if email already exists
-    const existing = db.prepare('SELECT id FROM users WHERE email = ?').get(email);
+    const { data: existing } = await supabase
+      .from('users')
+      .select('id')
+      .eq('email', email)
+      .single();
+
     if (existing) {
       return NextResponse.redirect(
         new URL('/register?error=Email tersebut sudah terdaftar', req.url)
@@ -36,14 +41,19 @@ export async function POST(req: NextRequest) {
     }
 
     const hashed = hashPassword(password);
-    const stmt = db.prepare(
-      "INSERT INTO users (name, email, phone, password, role, created_at, updated_at) VALUES (?, ?, ?, ?, ?, datetime('now'), datetime('now'))"
-    );
-    const result = stmt.run(name, email, phone, hashed, 'mahasiswa');
-    const newUserId = Number(result.lastInsertRowid);
+
+    const { data: newUser, error } = await supabase
+      .from('users')
+      .insert({ name, email, phone, password: hashed, role: 'mahasiswa' })
+      .select('id')
+      .single();
+
+    if (error || !newUser) {
+      throw new Error(error?.message || 'Gagal membuat akun');
+    }
 
     await setSession({
-      id: newUserId,
+      id: newUser.id,
       name,
       email,
       role: 'mahasiswa',

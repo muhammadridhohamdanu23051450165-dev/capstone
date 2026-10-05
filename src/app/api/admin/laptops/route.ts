@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSession } from '@/lib/auth';
-import { db } from '@/lib/db';
+import { supabase } from '@/lib/supabase';
 
 export async function POST(req: NextRequest) {
   try {
@@ -14,9 +14,9 @@ export async function POST(req: NextRequest) {
 
     if (action === 'DELETE') {
       const id = parseInt(formData.get('id') as string);
-      db.prepare('DELETE FROM hasil_topsis WHERE laptop_id = ?').run(id);
-      db.prepare('DELETE FROM penjelasan_ai WHERE laptop_id = ?').run(id);
-      db.prepare('DELETE FROM laptops WHERE id = ?').run(id);
+      await supabase.from('hasil_topsis').delete().eq('laptop_id', id);
+      await supabase.from('penjelasan_ai').delete().eq('laptop_id', id);
+      await supabase.from('laptops').delete().eq('id', id);
       return NextResponse.redirect(new URL('/admin/dashboard?tab=laptops&success=Laptop berhasil dihapus', req.url));
     }
 
@@ -32,25 +32,17 @@ export async function POST(req: NextRequest) {
       const weight_kg = parseFloat(formData.get('weight_kg') as string);
       const condition = (formData.get('condition') as string) || 'baru';
 
-      db.prepare(`
-        UPDATE laptops 
-        SET name = ?, brand = ?, price = ?, performa_komposit = ?, processor_score = ?, vga_score = ?, 
-            ram_gb = ?, storage_gb = ?, battery_hours = ?, weight_kg = ?, condition = ?, updated_at = datetime('now')
-        WHERE id = ?
-      `).run(
-        name,
-        brand,
-        price,
-        performa,
-        performa,
-        performa,
-        ram_gb,
-        storage_gb,
-        battery_hours,
-        weight_kg,
-        condition,
-        id
-      );
+      await supabase
+        .from('laptops')
+        .update({
+          name, brand, price,
+          performa_komposit: performa,
+          processor_score: performa,
+          vga_score: performa,
+          ram_gb, storage_gb, battery_hours, weight_kg, condition,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', id);
 
       return NextResponse.redirect(new URL('/admin/dashboard?tab=laptops&success=Data laptop berhasil diperbarui', req.url));
     }
@@ -66,23 +58,13 @@ export async function POST(req: NextRequest) {
     const weight_kg = parseFloat(formData.get('weight_kg') as string);
     const condition = (formData.get('condition') as string) || 'baru';
 
-    db.prepare(`
-      INSERT INTO laptops 
-      (name, brand, price, performa_komposit, processor_score, vga_score, ram_gb, storage_gb, battery_hours, weight_kg, condition, created_at, updated_at) 
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'), datetime('now'))
-    `).run(
-      name,
-      brand,
-      price,
-      performa,
-      performa,
-      performa,
-      ram_gb,
-      storage_gb,
-      battery_hours,
-      weight_kg,
-      condition
-    );
+    await supabase.from('laptops').insert({
+      name, brand, price,
+      performa_komposit: performa,
+      processor_score: performa,
+      vga_score: performa,
+      ram_gb, storage_gb, battery_hours, weight_kg, condition,
+    });
 
     return NextResponse.redirect(new URL('/admin/dashboard?tab=laptops&success=Data laptop berhasil ditambahkan', req.url));
   } catch (error) {

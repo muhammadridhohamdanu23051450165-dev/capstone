@@ -1,7 +1,7 @@
 import { redirect } from 'next/navigation';
 import Link from 'next/link';
 import { getSession } from '@/lib/auth';
-import { db, KuisionerJawaban, Laptop } from '@/lib/db';
+import { supabase, KuisionerJawaban } from '@/lib/supabase';
 import { QuestionnaireForm } from '@/components/QuestionnaireForm';
 
 export default async function QuestionnairePage({
@@ -19,24 +19,32 @@ export default async function QuestionnairePage({
   const info = params.info;
 
   // Total history
-  const countRow = db
-    .prepare('SELECT count(*) as count FROM kuisioner_jawaban WHERE user_id = ?')
-    .get(session.userId) as { count: number } | undefined;
-  const totalHistory = countRow?.count || 0;
+  const { count: totalHistoryCount } = await supabase
+    .from('kuisioner_jawaban')
+    .select('*', { count: 'exact', head: true })
+    .eq('user_id', session.userId);
+  const totalHistory = totalHistoryCount || 0;
 
   // Copy from previous
   let copyFrom: KuisionerJawaban | undefined;
   if (copyFromId) {
-    copyFrom = db
-      .prepare('SELECT * FROM kuisioner_jawaban WHERE id = ? AND user_id = ?')
-      .get(copyFromId, session.userId) as KuisionerJawaban | undefined;
+    const { data } = await supabase
+      .from('kuisioner_jawaban')
+      .select('*')
+      .eq('id', copyFromId)
+      .eq('user_id', session.userId)
+      .single();
+    if (data) copyFrom = data as KuisionerJawaban;
   }
 
   // Brands list
-  const brandRows = (db
-    .prepare("SELECT DISTINCT brand FROM laptops WHERE brand IS NOT NULL AND brand != '' ORDER BY brand ASC")
-    .all() as { brand: string }[]) || [];
-  const brands = brandRows.map((b) => b.brand);
+  const { data: brandRows } = await supabase
+    .from('laptops')
+    .select('brand')
+    .not('brand', 'is', null)
+    .neq('brand', '')
+    .order('brand', { ascending: true });
+  const brands = Array.from(new Set((brandRows || []).map((b: { brand: string }) => b.brand)));
 
   const initialData = copyFrom
     ? {

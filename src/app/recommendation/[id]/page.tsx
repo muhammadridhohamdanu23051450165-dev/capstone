@@ -2,12 +2,11 @@ import { notFound, redirect } from 'next/navigation';
 import Link from 'next/link';
 import { getSession } from '@/lib/auth';
 import {
-  db,
+  supabase,
   KuisionerJawaban,
-  Laptop,
   getLaptopPerforma,
   getLaptopImageUrl,
-} from '@/lib/db';
+} from '@/lib/supabase';
 import { ResultTabs, LaptopResultCardProps } from '@/components/ResultTabs';
 
 export default async function RecommendationResultPage({
@@ -23,9 +22,13 @@ export default async function RecommendationResultPage({
   const { id } = await params;
   const jawabanId = parseInt(id);
 
-  const jawaban = db
-    .prepare('SELECT * FROM kuisioner_jawaban WHERE id = ?')
-    .get(jawabanId) as KuisionerJawaban | undefined;
+  const { data: jawabanData } = await supabase
+    .from('kuisioner_jawaban')
+    .select('*')
+    .eq('id', jawabanId)
+    .single();
+
+  const jawaban = jawabanData as KuisionerJawaban | null;
 
   if (!jawaban) {
     notFound();
@@ -37,52 +40,63 @@ export default async function RecommendationResultPage({
   }
 
   // Total history
-  const countRow = db
-    .prepare('SELECT count(*) as count FROM kuisioner_jawaban WHERE user_id = ?')
-    .get(jawaban.user_id) as { count: number } | undefined;
-  const totalHistory = countRow?.count || 0;
+  const { count: totalHistoryCount } = await supabase
+    .from('kuisioner_jawaban')
+    .select('*', { count: 'exact', head: true })
+    .eq('user_id', jawaban.user_id);
+  const totalHistory = totalHistoryCount || 0;
 
   // Bobot ROC
-  const bobotRows = (db
-    .prepare(
-      'SELECT bkh.*, k.kode, k.nama, k.tipe FROM bobot_kriteria_hasil bkh JOIN kriteria k ON bkh.kriteria_id = k.id WHERE bkh.kuisioner_jawaban_id = ? ORDER BY bkh.prioritas ASC'
-    )
-    .all(jawabanId) as {
-    prioritas: number;
-    bobot: number;
-    kode: string;
-    nama: string;
-    tipe: string;
-  }[]) || [];
+  const { data: bobotData } = await supabase
+    .from('bobot_kriteria_hasil')
+    .select('prioritas, bobot, kriteria_id')
+    .eq('kuisioner_jawaban_id', jawabanId)
+    .order('prioritas', { ascending: true });
+
+  const { data: kriteriaData } = await supabase.from('kriteria').select('*');
+  const kriteriaMap = new Map((kriteriaData || []).map((k: { id: number; kode: string; nama: string; tipe: string }) => [k.id, k]));
+
+  const bobotRows = (bobotData || []).map((b: { prioritas: number; bobot: number | string; kriteria_id: number }) => {
+    const k = kriteriaMap.get(b.kriteria_id);
+    return {
+      prioritas: b.prioritas,
+      bobot: Number(b.bobot),
+      kode: k?.kode || '',
+      nama: k?.nama || '',
+      tipe: k?.tipe || 'benefit',
+    };
+  });
 
   // Penjelasan AI
-  const aiRows = (db
-    .prepare('SELECT laptop_id, penjelasan FROM penjelasan_ai WHERE kuisioner_jawaban_id = ?')
-    .all(jawabanId) as { laptop_id: number; penjelasan: string }[]) || [];
+  const { data: aiRows } = await supabase
+    .from('penjelasan_ai')
+    .select('laptop_id, penjelasan')
+    .eq('kuisioner_jawaban_id', jawabanId);
   const explanationsMap: Record<number, string> = {};
-  for (const row of aiRows) {
+  for (const row of (aiRows || [])) {
     explanationsMap[row.laptop_id] = row.penjelasan;
   }
 
   // Hasil TOPSIS
-  const topsisRows = (db
-    .prepare(
-      `SELECT ht.*, l.name, l.brand, l.price, l.ram_gb, l.storage_gb, l.battery_hours, l.weight_kg, 
-              l.performa_komposit, l.processor_score, l.vga_score, l.condition as laptop_condition, l.image 
-       FROM hasil_topsis ht 
-       JOIN laptops l ON ht.laptop_id = l.id 
-       WHERE ht.kuisioner_jawaban_id = ? 
-       ORDER BY ht.peringkat ASC`
-    )
-    .all(jawabanId) as (Laptop & {
-    laptop_condition: string;
-    laptop_id: number;
-    nilai_v: number;
-    peringkat: number;
-    kondisi: string;
-  })[]) || [];
+  const { data: topsisRaw } = await supabase
+    .from('hasil_topsis')
+    .select('*')
+    .eq('kuisioner_jawaban_id', jawabanId)
+    .order('peringkat', { ascending: true });
 
-  function formatCard(item: typeof topsisRows[0]): LaptopResultCardProps {
+  const { data: allLaptops } = await supabase.from('laptops').select('*');
+  const laptopMap = new Map((allLaptops || []).map((l: { id: number }) => [l.id, l]));
+
+  const topsisRows = (topsisRaw || []).map((ht: { laptop_id: number; id: number; peringkat: number; nilai_v: number; kondisi: string }) => {
+    const l = (laptopMap.get(ht.laptop_id) || {}) as Record<string, any>;
+    return {
+      ...l,
+      ...ht,
+      laptop_condition: l.condition,
+    };
+  });
+
+  function formatCard(item: any): LaptopResultCardProps {
     const performa = getLaptopPerforma(item);
     const imageUrl = getLaptopImageUrl(item);
     const searchQuery = encodeURIComponent(`${item.brand || ''} ${item.name || ''}`.trim());
@@ -112,8 +126,8 @@ export default async function RecommendationResultPage({
     };
   }
 
-  const hasilBaru = topsisRows.filter((r) => r.kondisi === 'baru').map(formatCard);
-  const hasilSecond = topsisRows.filter((r) => r.kondisi === 'second').map(formatCard);
+  const hasilBaru = topsisRows.filter((r: any) => r.kondisi === 'baru').map(formatCard);
+  const hasilSecond = topsisRows.filter((r: any) => r.kondisi === 'second').map(formatCard);
 
   const tanggalFormatted = jawaban.tanggal_pengisian
     ? new Date(jawaban.tanggal_pengisian).toLocaleDateString('id-ID', {

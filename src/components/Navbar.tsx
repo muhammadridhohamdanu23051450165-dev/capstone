@@ -1,18 +1,19 @@
 import Link from 'next/link';
 import { AuthSession } from '@/lib/auth';
-import { db } from '@/lib/db';
+import { supabase } from '@/lib/supabase';
 
 interface NavbarProps {
   user: AuthSession | null;
 }
 
-export function Navbar({ user }: NavbarProps) {
+export async function Navbar({ user }: NavbarProps) {
   let historyCount = 0;
   if (user) {
-    const res = db.prepare('SELECT count(*) as count FROM kuisioner_jawaban WHERE user_id = ?').get(user.userId) as {
-      count: number;
-    } | undefined;
-    historyCount = res?.count || 0;
+    const { count } = await supabase
+      .from('kuisioner_jawaban')
+      .select('*', { count: 'exact', head: true })
+      .eq('user_id', user.userId);
+    historyCount = count || 0;
   }
 
   return (

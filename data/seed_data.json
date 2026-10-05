@@ -1,0 +1,172 @@
+{
+  "users": [
+    {
+      "id": 1,
+      "name": "Administrator",
+      "email": "admin@gmail.com",
+      "email_verified_at": null,
+      "password": "$2b$10$4P/x8albZrSc3NYUF98/8e9BzshM80K.rhuCakcLKFfJVjj8wpf8u",
+      "remember_token": null,
+      "created_at": "2026-10-02 16:15:24",
+      "updated_at": "2026-10-02 16:15:24",
+      "role": "admin",
+      "phone": null
+    },
+    {
+      "id": 2,
+      "name": "Mahasiswa User",
+      "email": "mahasiswa@gmail.com",
+      "email_verified_at": null,
+      "password": "$2y$12$I.EPF9y4jDy8CBK/VoDs1.IibgCwRKPDljFE91lLoV83.UvLqPvIq",
+      "remember_token": null,
+      "created_at": "2026-10-02 16:15:24",
+      "updated_at": "2026-10-02 16:15:24",
+      "role": "mahasiswa",
+      "phone": null
+    }
+  ],
+  "laptops": [
+    {
+      "id": 1,
+      "name": "Acer Aspire 5",
+      "brand": "Acer",
+      "price": 8200000,
+      "ram_gb": 8,
+      "storage_gb": 512,
+      "display_size": 14,
+      "processor_score": 72,
+      "vga_score": 60,
+      "battery_hours": 7,
+      "weight_kg": 1.8,
+      "mobility_score": 75,
+      "category": "kuliah",
+      "image": "",
+      "created_at": null,
+      "updated_at": null,
+      "condition": "baru",
+      "performa_komposit": null
+    },
+    {
+      "id": 2,
+      "name": "Lenovo Ideapad Gaming 3",
+      "brand": "Lenovo",
+      "price": 12600000,
+      "ram_gb": 16,
+      "storage_gb": 512,
+      "display_size": 15.6,
+      "processor_score": 82,
+      "vga_score": 84,
+      "battery_hours": 5,
+      "weight_kg": 2.4,
+      "mobility_score": 60,
+      "category": "gaming",
+      "image": "",
+      "created_at": null,
+      "updated_at": null,
+      "condition": "second",
+      "performa_komposit": null
+    },
+    {
+      "id": 3,
+      "name": "Dell XPS 13",
+      "brand": "Dell",
+      "price": 16800000,
+      "ram_gb": 16,
+      "storage_gb": 512,
+      "display_size": 13.4,
+      "processor_score": 88,
+      "vga_score": 52,
+      "battery_hours": 10,
+      "weight_kg": 1.2,
+      "mobility_score": 95,
+      "category": "programming",
+      "image": "",
+      "created_at": null,
+      "updated_at": null,
+      "condition": "baru",
+      "performa_komposit": null
+    },
+    {
+      "id": 4,
+      "name": "ASUS TUF Gaming F15",
+      "brand": "ASUS",
+      "price": 15400000,
+      "ram_gb": 16,
+      "storage_gb": 1000,
+      "display_size": 15.6,
+      "processor_score": 87,
+      "vga_score": 90,
+      "battery_hours": 5.5,
+      "weight_kg": 2.3,
+      "mobility_score": 58,
+      "category": "gaming",
+      "image": "",
+      "created_at": null,
+      "updated_at": null,
+      "condition": "second",
+      "performa_komposit": null
+    }
+  ],
+  "kriteria": [
+    {
+      "id": 1,
+      "kode": "C1",
+      "nama": "Harga",
+      "tipe": "cost",
+      "deskripsi": "Biaya pengadaan laptop, semakin murah semakin baik.",
+      "created_at": "2026-10-02 16:15:24",
+      "updated_at": "2026-10-02 16:15:24",
+      "bobot": 0.4083
+    },
+    {
+      "id": 2,
+      "kode": "C2",
+      "nama": "Performa",
+      "tipe": "benefit",
+      "deskripsi": "Performa komposit komputasi CPU dan GPU.",
+      "created_at": "2026-10-02 16:15:24",
+      "updated_at": "2026-10-02 16:15:24",
+      "bobot": 0.2417
+    },
+    {
+      "id": 3,
+      "kode": "C3",
+      "nama": "RAM",
+      "tipe": "benefit",
+      "deskripsi": "Kapasitas memori RAM multitasking (GB).",
+      "created_at": "2026-10-02 16:15:24",
+      "updated_at": "2026-10-02 16:15:24",
+      "bobot": 0.1583
+    },
+    {
+      "id": 4,
+      "kode": "C4",
+      "nama": "Storage",
+      "tipe": "benefit",
+      "deskripsi": "Kapasitas ruang penyimpanan SSD (GB).",
+      "created_at": "2026-10-02 16:15:24",
+      "updated_at": "2026-10-02 16:15:24",
+      "bobot": 0.1028
+    },
+    {
+      "id": 5,
+      "kode": "C5",
+      "nama": "Baterai",
+      "tipe": "benefit",
+      "deskripsi": "Ketahanan daya baterai pemakaian (Jam).",
+      "created_at": "2026-10-02 16:15:24",
+      "updated_at": "2026-10-02 16:15:24",
+      "bobot": 0.0611
+    },
+    {
+      "id": 6,
+      "kode": "C6",
+      "nama": "Portabilitas",
+      "tipe": "cost",
+      "deskripsi": "Bobot fisik laptop (Kg), semakin ringan semakin portabel.",
+      "created_at": "2026-10-02 16:15:24",
+      "updated_at": "2026-10-02 16:15:24",
+      "bobot": 0.0278
+    }
+  ]
+}

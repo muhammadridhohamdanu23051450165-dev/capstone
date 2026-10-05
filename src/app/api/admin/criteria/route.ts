@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSession } from '@/lib/auth';
-import { db } from '@/lib/db';
+import { supabase } from '@/lib/supabase';
 
 export async function POST(req: NextRequest) {
   try {
@@ -16,11 +16,10 @@ export async function POST(req: NextRequest) {
     const bobot = parseFloat((formData.get('bobot') as string) || '0.1667');
     const deskripsi = (formData.get('deskripsi') as string) || '';
 
-    db.prepare(`
-      UPDATE kriteria 
-      SET nama = ?, tipe = ?, bobot = ?, deskripsi = ?, updated_at = datetime('now')
-      WHERE id = ?
-    `).run(nama, tipe, bobot, deskripsi, id);
+    await supabase
+      .from('kriteria')
+      .update({ nama, tipe, bobot, deskripsi, updated_at: new Date().toISOString() })
+      .eq('id', id);
 
     return NextResponse.redirect(new URL('/admin/dashboard?tab=criteria&success=Kriteria berhasil diperbarui', req.url));
   } catch (error) {

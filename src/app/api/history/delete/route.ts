@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSession } from '@/lib/auth';
-import { db, KuisionerJawaban } from '@/lib/db';
+import { supabase } from '@/lib/supabase';
 
 export async function POST(req: NextRequest) {
   try {
@@ -16,9 +16,11 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'ID tidak valid' }, { status: 400 });
     }
 
-    const item = db.prepare('SELECT * FROM kuisioner_jawaban WHERE id = ?').get(id) as
-      | KuisionerJawaban
-      | undefined;
+    const { data: item } = await supabase
+      .from('kuisioner_jawaban')
+      .select('id, user_id')
+      .eq('id', id)
+      .single();
 
     if (!item) {
       return NextResponse.json({ error: 'Data tidak ditemukan' }, { status: 404 });
@@ -28,11 +30,11 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
-    // Delete cascading
-    db.prepare('DELETE FROM hasil_topsis WHERE kuisioner_jawaban_id = ?').run(id);
-    db.prepare('DELETE FROM bobot_kriteria_hasil WHERE kuisioner_jawaban_id = ?').run(id);
-    db.prepare('DELETE FROM penjelasan_ai WHERE kuisioner_jawaban_id = ?').run(id);
-    db.prepare('DELETE FROM kuisioner_jawaban WHERE id = ?').run(id);
+    // Delete cascading (FK constraints handle children, but explicit for safety)
+    await supabase.from('hasil_topsis').delete().eq('kuisioner_jawaban_id', id);
+    await supabase.from('bobot_kriteria_hasil').delete().eq('kuisioner_jawaban_id', id);
+    await supabase.from('penjelasan_ai').delete().eq('kuisioner_jawaban_id', id);
+    await supabase.from('kuisioner_jawaban').delete().eq('id', id);
 
     return NextResponse.redirect(new URL('/riwayat?success=Riwayat berhasil dihapus', req.url));
   } catch (error) {

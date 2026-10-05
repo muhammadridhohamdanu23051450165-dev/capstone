@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSession } from '@/lib/auth';
-import { db, Laptop, Kriteria, KuisionerJawaban } from '@/lib/db';
+import { supabase, Laptop, Kriteria, KuisionerJawaban } from '@/lib/supabase';
 import { calculateRocWeights } from '@/lib/services/roc';
 import { calculateTopsis, TopsisRankedItem } from '@/lib/services/topsis';
 import { generateForTopLaptops } from '@/lib/services/aiExplanation';
@@ -35,26 +35,28 @@ export async function POST(req: NextRequest) {
       `Konsultasi ${peruntukan.charAt(0).toUpperCase() + peruntukan.slice(1)} (${new Date().toLocaleDateString('id-ID')})`;
 
     // 1. Simpan KuisionerJawaban
-    const insertJawaban = db.prepare(`
-      INSERT INTO kuisioner_jawaban 
-      (user_id, budget_min, budget_max, peruntukan, ranking_kriteria, merek_pilihan, kondisi_pilihan, frekuensi_membawa, judul, tanggal_pengisian, created_at, updated_at) 
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'), datetime('now'))
-    `);
+    const { data: jawabanRow, error: jawabanError } = await supabase
+      .from('kuisioner_jawaban')
+      .insert({
+        user_id: session.userId,
+        budget_min: Number(budget_min),
+        budget_max: Number(budget_max),
+        peruntukan,
+        ranking_kriteria: JSON.stringify(ranking_kriteria),
+        merek_pilihan: JSON.stringify(merek_pilihan || ['semua']),
+        kondisi_pilihan,
+        frekuensi_membawa: frekuensi_membawa || 'Rutin Setiap Hari',
+        judul: generatedTitle,
+        tanggal_pengisian: tgl,
+      })
+      .select('id')
+      .single();
 
-    const result = insertJawaban.run(
-      session.userId,
-      Number(budget_min),
-      Number(budget_max),
-      peruntukan,
-      JSON.stringify(ranking_kriteria),
-      JSON.stringify(merek_pilihan || ['semua']),
-      kondisi_pilihan,
-      frekuensi_membawa || 'Rutin Setiap Hari',
-      generatedTitle,
-      tgl
-    );
+    if (jawabanError || !jawabanRow) {
+      throw new Error(jawabanError?.message || 'Gagal menyimpan jawaban');
+    }
 
-    const jawabanId = Number(result.lastInsertRowid);
+    const jawabanId = jawabanRow.id;
 
     const jawaban: KuisionerJawaban = {
       id: jawabanId,
@@ -72,29 +74,38 @@ export async function POST(req: NextRequest) {
 
     // 2. TAHAP 1: Hitung Bobot ROC
     const rocWeights = calculateRocWeights(ranking_kriteria);
-    const criteriaDb = (db.prepare('SELECT * FROM kriteria').all() as Kriteria[]) || [];
+    const { data: criteriaDb } = await supabase.from('kriteria').select('*');
+    const criteriaList = (criteriaDb || []) as Kriteria[];
     const criteriaByCode: Record<string, Kriteria> = {};
-    for (const c of criteriaDb) {
+    for (const c of criteriaList) {
       criteriaByCode[c.kode] = c;
     }
 
-    const insertBobot = db.prepare(`
-      INSERT INTO bobot_kriteria_hasil 
-      (kuisioner_jawaban_id, kriteria_id, prioritas, bobot, created_at, updated_at) 
-      VALUES (?, ?, ?, ?, datetime('now'), datetime('now'))
-    `);
-
     const rocWeightsMap: Record<string, number> = {};
+    const bobotInserts: object[] = [];
     for (const [code, item] of Object.entries(rocWeights)) {
       const kModel = criteriaByCode[code];
       if (kModel) {
-        insertBobot.run(jawabanId, kModel.id, item.prioritas, item.bobot);
+        bobotInserts.push({
+          kuisioner_jawaban_id: jawabanId,
+          kriteria_id: kModel.id,
+          prioritas: item.prioritas,
+          bobot: item.bobot,
+        });
       }
       rocWeightsMap[code] = item.bobot;
     }
 
+    if (bobotInserts.length > 0) {
+      await supabase.from('bobot_kriteria_hasil').insert(bobotInserts);
+    }
+
     // 3. TAHAP 2: Filter Data & Jalankan Algoritme TOPSIS
-    const allLaptops = (db.prepare('SELECT * FROM laptops WHERE price IS NOT NULL').all() as Laptop[]) || [];
+    const { data: allLaptopsRaw } = await supabase
+      .from('laptops')
+      .select('*')
+      .not('price', 'is', null);
+    const allLaptops = (allLaptopsRaw || []) as Laptop[];
 
     let filtered = allLaptops.filter((l) => l.price >= jawaban.budget_min && l.price <= jawaban.budget_max);
 
@@ -108,12 +119,7 @@ export async function POST(req: NextRequest) {
       filtered = allLaptops.slice(0, 50);
     }
 
-    const insertTopsis = db.prepare(`
-      INSERT INTO hasil_topsis 
-      (kuisioner_jawaban_id, laptop_id, kondisi, nilai_v, peringkat, created_at, updated_at) 
-      VALUES (?, ?, ?, ?, ?, datetime('now'), datetime('now'))
-    `);
-
+    const topsisInserts: object[] = [];
     let topLaptopsForAi: TopsisRankedItem[] = [];
 
     // 3A. Laptop Baru
@@ -126,7 +132,13 @@ export async function POST(req: NextRequest) {
       if (laptopsBaru.length > 0) {
         const topsisBaru = calculateTopsis(laptopsBaru, rocWeightsMap);
         for (const item of topsisBaru.ranked) {
-          insertTopsis.run(jawabanId, item.laptop_id, 'baru', item.nilai_v, item.peringkat);
+          topsisInserts.push({
+            kuisioner_jawaban_id: jawabanId,
+            laptop_id: item.laptop_id,
+            kondisi: 'baru',
+            nilai_v: item.nilai_v,
+            peringkat: item.peringkat,
+          });
         }
         topLaptopsForAi = topLaptopsForAi.concat(topsisBaru.ranked.slice(0, 3));
       }
@@ -142,10 +154,20 @@ export async function POST(req: NextRequest) {
       if (laptopsSecond.length > 0) {
         const topsisSecond = calculateTopsis(laptopsSecond, rocWeightsMap);
         for (const item of topsisSecond.ranked) {
-          insertTopsis.run(jawabanId, item.laptop_id, 'second', item.nilai_v, item.peringkat);
+          topsisInserts.push({
+            kuisioner_jawaban_id: jawabanId,
+            laptop_id: item.laptop_id,
+            kondisi: 'second',
+            nilai_v: item.nilai_v,
+            peringkat: item.peringkat,
+          });
         }
         topLaptopsForAi = topLaptopsForAi.concat(topsisSecond.ranked.slice(0, 3));
       }
+    }
+
+    if (topsisInserts.length > 0) {
+      await supabase.from('hasil_topsis').insert(topsisInserts);
     }
 
     // 4. TAHAP 3: Generate AI Explanation Cache

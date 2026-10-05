@@ -1,4 +1,4 @@
-import { Laptop, getLaptopPerforma } from '../db';
+import { Laptop, getLaptopPerforma } from '../supabase';
 
 export interface TopsisRankedItem {
   laptop: Laptop;

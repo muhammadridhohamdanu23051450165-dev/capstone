@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { db, Laptop, getLaptopPerforma, getLaptopImageUrl } from '@/lib/db';
+import { supabase, Laptop, getLaptopPerforma, getLaptopImageUrl } from '@/lib/supabase';
 import { getSession } from '@/lib/auth';
 import { FeaturedLaptopsSection, LaptopItem } from '@/components/FeaturedLaptopsSection';
 
@@ -7,7 +7,11 @@ export default async function HomePage() {
   const session = await getSession();
 
   // Query laptops from database
-  const allLaptops = (db.prepare('SELECT * FROM laptops WHERE price IS NOT NULL AND price > 0').all() as Laptop[]) || [];
+  const { data: laptopsData } = await supabase
+    .from('laptops')
+    .select('*')
+    .gt('price', 0);
+  const allLaptops = (laptopsData || []) as Laptop[];
 
   function mapToItem(l: Laptop): LaptopItem {
     return {
