@@ -47,7 +47,7 @@ export async function generateForTopLaptops(
 
     try {
       db.prepare(
-        'INSERT INTO penjelasan_ai (kuisioner_jawaban_id, laptop_id, penjelasan, created_at, updated_at) VALUES (?, ?, ?, datetime('now'), datetime('now'))'
+        `INSERT INTO penjelasan_ai (kuisioner_jawaban_id, laptop_id, penjelasan, created_at, updated_at) VALUES (?, ?, ?, datetime('now'), datetime('now'))`
       ).run(jawaban.id, laptop.id, narasi);
     } catch {
       // ignore insert error if already exists
