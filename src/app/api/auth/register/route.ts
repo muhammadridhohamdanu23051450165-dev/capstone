@@ -37,7 +37,7 @@ export async function POST(req: NextRequest) {
 
     const hashed = hashPassword(password);
     const stmt = db.prepare(
-      'INSERT INTO users (name, email, phone, password, role, created_at, updated_at) VALUES (?, ?, ?, ?, ?, datetime("now"), datetime("now"))'
+      "INSERT INTO users (name, email, phone, password, role, created_at, updated_at) VALUES (?, ?, ?, ?, ?, datetime('now'), datetime('now'))"
     );
     const result = stmt.run(name, email, phone, hashed, 'mahasiswa');
     const newUserId = Number(result.lastInsertRowid);
