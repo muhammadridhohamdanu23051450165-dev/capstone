@@ -2,14 +2,31 @@ import { DatabaseSync } from 'node:sqlite';
 import path from 'node:path';
 import fs from 'node:fs';
 
-const dbPath = path.join(process.cwd(), 'data', 'database.sqlite');
+const isVercel = Boolean(process.env.VERCEL);
 
-if (!fs.existsSync(dbPath)) {
-  const dir = path.dirname(dbPath);
-  if (!fs.existsSync(dir)) {
-    fs.mkdirSync(dir, { recursive: true });
+function getDatabasePath(): string {
+  const sourceDbPath = path.join(process.cwd(), 'data', 'database.sqlite');
+
+  if (isVercel) {
+    const tmpDbPath = path.join('/tmp', 'database.sqlite');
+    if (!fs.existsSync(tmpDbPath)) {
+      if (fs.existsSync(sourceDbPath)) {
+        fs.copyFileSync(sourceDbPath, tmpDbPath);
+      }
+    }
+    return tmpDbPath;
   }
+
+  if (!fs.existsSync(sourceDbPath)) {
+    const dir = path.dirname(sourceDbPath);
+    if (!fs.existsSync(dir)) {
+      fs.mkdirSync(dir, { recursive: true });
+    }
+  }
+  return sourceDbPath;
 }
+
+const dbPath = getDatabasePath();
 
 // Global cached db instance to prevent multiple connections in dev mode
 const globalForDb = globalThis as unknown as {
