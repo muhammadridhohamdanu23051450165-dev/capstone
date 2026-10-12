@@ -72,7 +72,7 @@ export default async function QuestionnairePage({
       <div className="mb-8 text-center sm:text-left">
         <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-mono bg-gradient-to-r from-violet-950/60 to-cyan-950/60 border border-violet-500/30 text-cyan-300 mb-3 shadow-[0_0_15px_rgba(124,58,237,0.2)]">
           <span className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse"></span>
-          <span>Kuisioner Preferensi & SPK TOPSIS</span>
+          <span>Kuisioner Preferensi ReLap</span>
         </div>
         <h1 className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight">
           Kuisioner Kebutuhan{' '}

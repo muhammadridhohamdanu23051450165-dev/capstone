@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import Image from 'next/image';
 import { supabase, Laptop, getLaptopPerforma, getLaptopImageUrl } from '@/lib/supabase';
 import { getSession } from '@/lib/auth';
 import { FeaturedLaptopsSection, LaptopItem } from '@/components/FeaturedLaptopsSection';
@@ -69,10 +70,18 @@ export default async function HomePage() {
     <div className="py-8 sm:py-14 space-y-20">
       {/* Hero Section */}
       <div className="text-center max-w-4xl mx-auto">
-        {/* 21st.dev Animated Pill Badge */}
+        {/* Animated Pill Badge with ReLap Logo */}
         <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-medium bg-gradient-to-r from-violet-950/60 via-indigo-950/60 to-cyan-950/60 border border-violet-500/30 text-zinc-200 shadow-[0_0_20px_rgba(124,58,237,0.25)] mb-6 hover:border-cyan-400/50 transition">
-          <span className="flex h-2 w-2 rounded-full bg-cyan-400 animate-ping"></span>
-          <span className="font-mono text-cyan-300 font-semibold">Algoritme TOPSIS & ROC</span>
+          <div className="w-5 h-5 rounded-md overflow-hidden bg-[#070719] border border-white/10 flex items-center justify-center p-0.5">
+            <Image
+              src="/logo-relap.png"
+              alt="ReLap"
+              width={20}
+              height={20}
+              className="w-full h-full object-contain"
+            />
+          </div>
+          <span className="font-mono text-cyan-300 font-semibold">ReLap Smart Decision</span>
           <span className="text-zinc-600">•</span>
           <span className="text-zinc-300">Rekomendasi Laptop Cerdas Mahasiswa</span>
         </div>
@@ -85,7 +94,7 @@ export default async function HomePage() {
         </h1>
 
         <p className="text-base sm:text-lg text-zinc-300 leading-relaxed max-w-2xl mx-auto mb-10">
-          Sistem Pendukung Keputusan berbasis metode <strong>TOPSIS</strong> & <strong>ROC</strong> yang memadukan komputasi matematis objektif dan analisis naratif <strong>AI</strong> untuk merekomendasikan laptop terbaik sesuai anggaran Anda.
+          Sistem rekomendasi laptop pintar <strong>ReLap</strong> yang memadukan evaluasi matematis objektif dan analisis naratif <strong>AI</strong> untuk merekomendasikan laptop terbaik sesuai anggaran dan kebutuhan Anda.
         </p>
 
         <div className="flex flex-col sm:flex-row items-center justify-center gap-3.5 mb-12">
@@ -166,9 +175,9 @@ export default async function HomePage() {
           <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-indigo-600/30 to-cyan-600/30 border border-indigo-500/30 flex items-center justify-center text-cyan-300 mb-5 font-mono font-bold text-sm shadow-[0_0_15px_rgba(99,102,241,0.3)]">
             02
           </div>
-          <h3 className="text-lg font-bold text-white mb-2">Pembobotan & TOPSIS</h3>
+          <h3 className="text-lg font-bold text-white mb-2">Algoritma Cerdas ReLap</h3>
           <p className="text-sm text-zinc-400 leading-relaxed">
-            Matriks keputusan ternormalisasi terbobot dihitung secara objektif. Jarak Euclidean ke solusi ideal positif (A+) dan negatif (A-) menghasilkan ranking presisi.
+            Matriks keputusan dihitung secara objektif dan akurat berdasarkan bobot prioritas Anda untuk menghasilkan ranking rekomendasi dengan tingkat presisi tertinggi.
           </p>
         </div>
 

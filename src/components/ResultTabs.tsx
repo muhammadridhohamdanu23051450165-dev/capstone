@@ -108,10 +108,10 @@ export function ResultTabs({ hasilBaru, hasilSecond, kondisiPilihan }: Props) {
                 </div>
               </div>
 
-              {/* Skor Kecocokan TOPSIS (Vi) */}
+              {/* Skor Kecocokan ReLap */}
               <div className="p-4 rounded-2xl bg-zinc-950/90 border border-white/10 text-center sm:min-w-[170px] self-start shadow-inner">
-                <div className="text-[10px] font-mono text-zinc-400 uppercase tracking-wider mb-0.5">
-                  Kecocokan TOPSIS
+                <div className="text-[10px] font-mono text-cyan-300 uppercase tracking-wider mb-0.5 font-bold">
+                  Kecocokan ReLap
                 </div>
                 <div className="text-3xl font-extrabold text-white font-mono">{item.skor_persen}%</div>
                 <div className="mt-2 w-full bg-zinc-800 rounded-full h-1.5 overflow-hidden">
@@ -121,7 +121,7 @@ export function ResultTabs({ hasilBaru, hasilSecond, kondisiPilihan }: Props) {
                   ></div>
                 </div>
                 <span className="text-[10px] text-zinc-400 mt-1.5 block font-mono">
-                  Nilai V: {item.nilai_v.toFixed(4)}
+                  Indeks Skor: {item.nilai_v.toFixed(4)}
                 </span>
               </div>
             </div>

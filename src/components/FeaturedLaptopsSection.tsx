@@ -48,7 +48,7 @@ export function FeaturedLaptopsSection({ featured, gaming, portable, budget }: P
             Rekomendasi Laptop Terbaru & Terbaik
           </h2>
           <p className="text-xs sm:text-sm text-zinc-400 mt-1">
-            Koleksi laptop dengan nilai performa komposit unggulan yang siap dihitung kecocokannya dengan TOPSIS.
+            Koleksi laptop dengan nilai performa komposit unggulan yang siap dihitung kecocokannya oleh ReLap.
           </p>
         </div>
 

@@ -16,8 +16,12 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: 'Sistem Rekomendasi Laptop - SPK TOPSIS & ROC',
-  description: 'Sistem Pendukung Keputusan Pemilihan Laptop Mahasiswa Berbasis AI',
+  title: 'ReLap - Rekomendasi Laptop Cerdas Mahasiswa',
+  description: 'ReLap: Sistem Rekomendasi Pemilihan Laptop Mahasiswa Berbasis AI',
+  icons: {
+    icon: '/logo-relap.png',
+    apple: '/logo-relap.png',
+  },
 };
 
 export default async function RootLayout({

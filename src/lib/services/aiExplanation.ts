@@ -76,7 +76,7 @@ async function generateNarrative(
 
   if (apiKey) {
     try {
-      const prompt = `Hasil dari Sistem Rekomendasi Laptop Mahasiswa (SPK TOPSIS), buat penjelasan ringkas (2-3 kalimat lugas) mengapa laptop berikut cocok untuk mahasiswa:\n- Nama Laptop: ${laptop.name} (${laptop.condition})\n- Harga: Rp ${new Intl.NumberFormat('id-ID').format(laptop.price)}\n- Spesifikasi: RAM ${laptop.ram_gb}GB, SSD ${laptop.storage_gb}GB, Baterai ${laptop.battery_hours} jam, Berat ${laptop.weight_kg} kg, Skor Performa: ${performaScore}\n- Peringkat Rekomendasi: Peringkat ${rank} (Skor TOPSIS: ${scorePct}%)\n- Kebutuhan Mahasiswa: Peruntukan ${jawaban.peruntukan}, Frekuensi bawa: ${jawaban.frekuensi_membawa}, Prioritas Utama: ${topCriteriaName}\nGunakan bahasa Indonesia yang profesional, ramah, dan solutif.`;
+      const prompt = `Hasil dari Sistem Rekomendasi Laptop Mahasiswa ReLap, buat penjelasan ringkas (2-3 kalimat lugas) mengapa laptop berikut cocok untuk mahasiswa:\n- Nama Laptop: ${laptop.name} (${laptop.condition})\n- Harga: Rp ${new Intl.NumberFormat('id-ID').format(laptop.price)}\n- Spesifikasi: RAM ${laptop.ram_gb}GB, SSD ${laptop.storage_gb}GB, Baterai ${laptop.battery_hours} jam, Berat ${laptop.weight_kg} kg, Skor Performa: ${performaScore}\n- Peringkat Rekomendasi: Peringkat ${rank} (Skor ReLap: ${scorePct}%)\n- Kebutuhan Mahasiswa: Peruntukan ${jawaban.peruntukan}, Frekuensi bawa: ${jawaban.frekuensi_membawa}, Prioritas Utama: ${topCriteriaName}\nGunakan bahasa Indonesia yang profesional, ramah, dan solutif.`;
 
       const response = await fetch(
         `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
@@ -130,7 +130,7 @@ async function generateNarrative(
   const highlightText = highlights.join(', didukung ');
 
   if (rank === 1) {
-    return `Laptop ini merupakan pilihan terbaik (Peringkat 1) dengan skor preferensi TOPSIS tertinggi sebesar ${scorePct}%. Ditenagai ${highlightText}, laptop ${kondisiLabel} seharga ${hargaFormatted} ini sangat optimal dalam mengakomodasi prioritas utama Anda pada ${topCriteriaName} untuk kebutuhan ${peruntukan}.`;
+    return `Laptop ini merupakan pilihan terbaik (Peringkat 1) dengan skor preferensi ReLap tertinggi sebesar ${scorePct}%. Ditenagai ${highlightText}, laptop ${kondisiLabel} seharga ${hargaFormatted} ini sangat optimal dalam mengakomodasi prioritas utama Anda pada ${topCriteriaName} untuk kebutuhan ${peruntukan}.`;
   }
 
   return `Direkomendasikan pada Peringkat ${rank} dengan skor kecocokan ${scorePct}%. Menawarkan kombinasi seimbang antara ${highlightText}, menjadikannya alternatif yang sangat layak dipertimbangkan untuk kebutuhan ${peruntukan} dengan banderol ${hargaFormatted}.`;

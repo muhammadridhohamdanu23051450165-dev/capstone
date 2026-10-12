@@ -158,7 +158,7 @@ export default async function RecommendationResultPage({
           <div className="flex flex-wrap items-center gap-2 mb-2">
             <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-mono bg-emerald-950/50 text-emerald-400 border border-emerald-800/50 shadow-[0_0_15px_rgba(16,185,129,0.2)]">
               <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-              Analisis TOPSIS & Narasi AI Selesai
+              Analisis ReLap & Narasi AI Selesai
             </span>
             <span className="text-xs text-cyan-300 font-mono flex items-center gap-1 px-2.5 py-1 rounded-full bg-cyan-950/40 border border-cyan-800/40">
               <svg className="w-3.5 h-3.5 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -249,10 +249,10 @@ export default async function RecommendationResultPage({
         <div className="flex items-center justify-between mb-3">
           <div className="space-y-0.5">
             <h3 className="text-xs font-mono font-bold text-white uppercase tracking-wider">
-              Transparansi Perhitungan Bobot ROC (Rank Order Centroid)
+              Transparansi Pembobotan Kriteria ReLap
             </h3>
             <p className="text-[11px] text-zinc-400">
-              Dihitung otomatis dari urutan prioritas yang Anda tentukan: W_i = (1/K) * sum(1/j) • sum(W_i) = 1.0000
+              Dihitung otomatis dari urutan prioritas yang Anda tentukan secara matematis dan objektif (Total bobot = 1.0000)
             </p>
           </div>
         </div>

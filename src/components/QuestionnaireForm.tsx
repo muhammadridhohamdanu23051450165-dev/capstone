@@ -255,7 +255,7 @@ export function QuestionnaireForm({ initialData, brands, totalHistory }: Props) 
           <span className="text-[11px] font-mono text-emerald-400 bg-emerald-950/40 px-2 py-0.5 rounded border border-emerald-800/40">Fungsi: Filter Data</span>
         </div>
         <p className="text-xs text-zinc-400">
-          Tentukan batas minimal dan maksimal harga laptop yang akan diikutsertakan dalam pemeringkatan TOPSIS.
+          Tentukan batas minimal dan maksimal harga laptop yang akan diikutsertakan dalam pemeringkatan ReLap.
         </p>
 
         {/* Budget Presets */}
@@ -354,7 +354,7 @@ export function QuestionnaireForm({ initialData, brands, totalHistory }: Props) 
           <span className="text-[11px] font-mono text-emerald-400 bg-emerald-950/40 px-2.5 py-0.5 rounded-full border border-emerald-800/40">✨ Ramah Orang Awam</span>
         </div>
         <p className="text-xs text-zinc-400 leading-relaxed">
-          Pilih salah satu opsi kebutuhan di bawah ini yang paling menggambarkan rencana pemakaian laptop Anda. Sistem otomatis menyusun urutan prioritas pembobotan (ROC) yang paling pas untuk Anda.
+          Pilih salah satu opsi kebutuhan di bawah ini yang paling menggambarkan rencana pemakaian laptop Anda. Sistem otomatis menyusun urutan prioritas pembobotan ReLap yang paling pas untuk Anda.
         </p>
 
         {/* Pilihan Kartu Kebutuhan untuk Orang Awam */}
@@ -512,7 +512,7 @@ export function QuestionnaireForm({ initialData, brands, totalHistory }: Props) 
           <span className="text-[11px] font-mono text-cyan-400 bg-cyan-950/40 px-2 py-0.5 rounded border border-cyan-800/40">Fungsi: Segmentasi Evaluasi</span>
         </div>
         <p className="text-xs text-zinc-400">
-          Metode TOPSIS akan dijalankan secara terpisah untuk laptop baru dan/atau second demi menjaga keadilan perbandingan nilai preferensi.
+          Sistem ReLap akan menjalankan evaluasi secara terpisah untuk laptop baru dan/atau second demi menjaga keadilan perbandingan nilai rekomendasi.
         </p>
 
         <div className="grid sm:grid-cols-3 gap-3">
@@ -629,7 +629,7 @@ export function QuestionnaireForm({ initialData, brands, totalHistory }: Props) 
       {/* Submit Button */}
       <div className="p-6 rounded-3xl bg-[#0e0e15]/80 border border-white/10 backdrop-blur-md flex flex-col sm:flex-row items-center justify-between gap-4 shadow-xl">
         <div className="text-xs text-zinc-400 text-center sm:text-left">
-          Dengan menekan tombol di samping, sistem akan memproses perhitungan pembobotan ROC, matriks TOPSIS, dan menyusun penjelasan AI secara instan.
+          Dengan menekan tombol di samping, sistem ReLap akan memproses analisis kriteria, evaluasi laptop, dan menyusun rekomendasi AI secara instan.
         </div>
         <button
           type="submit"
@@ -639,11 +639,11 @@ export function QuestionnaireForm({ initialData, brands, totalHistory }: Props) 
           {loading ? (
             <>
               <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
-              <span>Memproses TOPSIS & ROC...</span>
+              <span>Menganalisis Rekomendasi ReLap...</span>
             </>
           ) : (
             <>
-              <span>Proses Rekomendasi TOPSIS & AI &rarr;</span>
+              <span>Dapatkan Rekomendasi ReLap & AI &rarr;</span>
             </>
           )}
         </button>

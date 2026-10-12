@@ -118,7 +118,7 @@ export default async function HistoryPage({
             Riwayat Kuisioner & Rekomendasi
           </h1>
           <p className="text-xs sm:text-sm text-zinc-400">
-            Setiap kali Anda mengirimkan kuisioner, sistem TOPSIS dan perhitungan bobot ROC dicatat secara mandiri untuk transparansi penelusuran hasil.
+            Setiap kali Anda mengirimkan kuisioner, sistem ReLap mencatat perhitungan preferensi secara mandiri untuk transparansi penelusuran hasil.
           </p>
         </div>
         <div className="flex items-center gap-2.5">

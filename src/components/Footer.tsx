@@ -1,14 +1,24 @@
+import Image from 'next/image';
+
 export function Footer() {
   return (
     <footer className="relative z-10 border-t border-white/[0.08] bg-[#09090d]/80 backdrop-blur-xl py-8 text-xs text-zinc-400 mt-auto">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row items-center justify-between gap-6">
         <div className="flex flex-col sm:flex-row items-center gap-3 text-center sm:text-left">
-          <div className="flex items-center gap-2">
-            <span className="w-2.5 h-2.5 rounded-full bg-gradient-to-r from-emerald-400 to-cyan-400 animate-pulse"></span>
-            <span className="code-font text-xs font-semibold text-zinc-200">LaptopSPK &bull; Algoritme TOPSIS & ROC</span>
+          <div className="flex items-center gap-2.5">
+            <div className="w-6 h-6 rounded-lg overflow-hidden bg-[#070719] border border-white/10 flex items-center justify-center p-0.5">
+              <Image
+                src="/logo-relap.png"
+                alt="ReLap Logo"
+                width={24}
+                height={24}
+                className="w-full h-full object-contain"
+              />
+            </div>
+            <span className="code-font text-xs font-semibold text-zinc-200">ReLap &bull; Smart Laptop Decision</span>
           </div>
           <span className="hidden sm:inline text-zinc-600">|</span>
-          <span className="text-zinc-400">Sistem Pendukung Keputusan Pemilihan Laptop Mahasiswa Berbasis AI</span>
+          <span className="text-zinc-400">Rekomendasi Pemilihan Laptop Mahasiswa Berbasis AI</span>
         </div>
 
         {/* Kontak No HP / WhatsApp & Facebook */}

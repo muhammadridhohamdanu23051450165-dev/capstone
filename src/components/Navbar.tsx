@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import Image from 'next/image';
 import { AuthSession } from '@/lib/auth';
 import { supabase } from '@/lib/supabase';
 
@@ -21,25 +22,26 @@ export async function Navbar({ user }: NavbarProps) {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4">
         <div className="flex items-center gap-6">
           <Link href="/" className="flex items-center gap-3 group">
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-violet-600 via-indigo-600 to-cyan-500 p-0.5 shadow-[0_0_20px_rgba(124,58,237,0.35)] group-hover:shadow-[0_0_30px_rgba(124,58,237,0.6)] transition duration-300">
-              <div className="w-full h-full bg-[#09090d] rounded-[10px] flex items-center justify-center text-white">
-                <svg className="w-4 h-4 text-cyan-400 group-hover:scale-110 transition" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <rect x="2" y="3" width="20" height="14" rx="2" strokeWidth="2" />
-                  <line x1="8" y1="21" x2="16" y2="21" strokeWidth="2" strokeLinecap="round" />
-                  <line x1="12" y1="17" x2="12" y2="21" strokeWidth="2" />
-                </svg>
-              </div>
+            <div className="relative w-9 h-9 rounded-xl overflow-hidden border border-white/10 shadow-[0_0_20px_rgba(124,58,237,0.35)] group-hover:shadow-[0_0_30px_rgba(124,58,237,0.6)] transition duration-300 bg-[#070719] flex items-center justify-center p-0.5">
+              <Image
+                src="/logo-relap.png"
+                alt="ReLap Logo"
+                width={36}
+                height={36}
+                className="w-full h-full object-contain group-hover:scale-105 transition"
+                priority
+              />
             </div>
             <div className="flex flex-col">
               <div className="flex items-center gap-2">
-                <span className="font-bold text-sm tracking-tight text-white group-hover:text-transparent group-hover:bg-clip-text group-hover:bg-gradient-to-r group-hover:from-white group-hover:via-violet-200 group-hover:to-cyan-300 transition">
-                  LaptopSPK
+                <span className="font-bold text-base tracking-tight text-white group-hover:text-transparent group-hover:bg-clip-text group-hover:bg-gradient-to-r group-hover:from-white group-hover:via-violet-200 group-hover:to-cyan-300 transition">
+                  ReLap
                 </span>
                 <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] font-mono font-medium bg-gradient-to-r from-violet-500/20 to-cyan-500/20 text-cyan-300 border border-cyan-500/30">
-                  TOPSIS
+                  SMART AI
                 </span>
               </div>
-              <span className="text-[10px] text-zinc-400 hidden sm:inline">Smart Decision & AI System</span>
+              <span className="text-[10px] text-zinc-400 hidden sm:inline">Laptop Yang Tepat, Dengan Cara Yang Tepat</span>
             </div>
           </Link>
 

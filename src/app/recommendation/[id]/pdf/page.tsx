@@ -115,13 +115,17 @@ export default async function PdfReportPage({
         <PrintButton />
       </div>
 
-      <div className="border-b-2 border-zinc-900 pb-3 mb-4">
-        <h1 className="text-lg font-extrabold uppercase tracking-wide text-zinc-900">
-          Laporan Rekomendasi Pemilihan Laptop Mahasiswa
-        </h1>
-        <div className="text-xs text-zinc-600 mt-1">
-          Sistem Pendukung Keputusan Berbasis Metode TOPSIS & Pembobotan Rank Order Centroid (ROC)
+      <div className="border-b-2 border-zinc-900 pb-3 mb-4 flex items-center justify-between">
+        <div>
+          <h1 className="text-lg font-extrabold uppercase tracking-wide text-zinc-900">
+            ReLap &bull; Laporan Rekomendasi Pemilihan Laptop
+          </h1>
+          <div className="text-xs text-zinc-600 mt-1">
+            Sistem Rekomendasi Laptop Mahasiswa Berbasis AI & Multi-Kriteria
+          </div>
         </div>
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src="/logo-relap.png" alt="ReLap Logo" className="w-12 h-12 object-contain rounded-lg" />
       </div>
 
       <table className="w-full text-xs mb-4">
@@ -156,9 +160,9 @@ export default async function PdfReportPage({
         </tbody>
       </table>
 
-      {/* Tabel Bobot ROC */}
+      {/* Tabel Bobot Kriteria ReLap */}
       <div className="font-bold text-zinc-900 mb-1.5">
-        Hasil Perhitungan Bobot Kriteria ROC (Rank Order Centroid):
+        Hasil Pembobotan Kriteria ReLap:
       </div>
       <table className="w-full border-collapse border border-zinc-200 text-xs mb-4">
         <thead>
@@ -208,7 +212,7 @@ export default async function PdfReportPage({
             RAM: <strong>{topBaru.ram_gb}GB</strong> &nbsp;|&nbsp; SSD:{' '}
             <strong>{topBaru.storage_gb}GB</strong> &nbsp;|&nbsp; Baterai:{' '}
             <strong>{topBaru.battery_hours} Jam</strong> &nbsp;|&nbsp; Berat:{' '}
-            <strong>{topBaru.weight_kg} Kg</strong> &nbsp;|&nbsp; Skor TOPSIS (Vi):{' '}
+            <strong>{topBaru.weight_kg} Kg</strong> &nbsp;|&nbsp; Skor ReLap:{' '}
             <strong>
               {topBaru.nilai_v.toFixed(4)} ({(topBaru.nilai_v * 100).toFixed(2)}%)
             </strong>
@@ -234,7 +238,7 @@ export default async function PdfReportPage({
             RAM: <strong>{topSecond.ram_gb}GB</strong> &nbsp;|&nbsp; SSD:{' '}
             <strong>{topSecond.storage_gb}GB</strong> &nbsp;|&nbsp; Baterai:{' '}
             <strong>{topSecond.battery_hours} Jam</strong> &nbsp;|&nbsp; Berat:{' '}
-            <strong>{topSecond.weight_kg} Kg</strong> &nbsp;|&nbsp; Skor TOPSIS (Vi):{' '}
+            <strong>{topSecond.weight_kg} Kg</strong> &nbsp;|&nbsp; Skor ReLap:{' '}
             <strong>
               {topSecond.nilai_v.toFixed(4)} ({(topSecond.nilai_v * 100).toFixed(2)}%)
             </strong>
@@ -247,9 +251,9 @@ export default async function PdfReportPage({
         </div>
       )}
 
-      {/* Tabel Hasil TOPSIS */}
+      {/* Tabel Hasil ReLap */}
       <div className="font-bold text-zinc-900 mb-1.5">
-        Tabel Hasil Pemeringkatan TOPSIS (Top 10 Rekomendasi):
+        Tabel Hasil Pemeringkatan ReLap (Top 10 Rekomendasi):
       </div>
       <table className="w-full border-collapse border border-zinc-200 text-xs mb-4">
         <thead>
@@ -262,7 +266,7 @@ export default async function PdfReportPage({
             <th className="border border-zinc-200 p-1.5 text-center w-14">Storage</th>
             <th className="border border-zinc-200 p-1.5 text-center w-14">Baterai</th>
             <th className="border border-zinc-200 p-1.5 text-center w-12">Berat</th>
-            <th className="border border-zinc-200 p-1.5 text-right w-20">Skor TOPSIS</th>
+            <th className="border border-zinc-200 p-1.5 text-right w-20">Skor ReLap</th>
           </tr>
         </thead>
         <tbody>
@@ -297,7 +301,7 @@ export default async function PdfReportPage({
       </table>
 
       <div className="mt-8 pt-2 border-t border-zinc-200 text-zinc-500 text-[10px] text-right">
-        Dicetak otomatis oleh SPK Rekomendasi Laptop Mahasiswa (Metode ROC & TOPSIS) •{' '}
+        Dicetak otomatis oleh ReLap - Sistem Rekomendasi Laptop Mahasiswa •{' '}
         {new Date().toLocaleDateString('id-ID', {
           day: '2-digit',
           month: 'long',

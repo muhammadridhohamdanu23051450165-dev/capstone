@@ -128,7 +128,7 @@ export function AdminPanelTabs({
         <div className="p-4 rounded-2xl bg-zinc-950/60 border border-white/5">
           <span className="text-[10px] text-zinc-400 uppercase font-mono block">Kriteria Keputusan</span>
           <div className="text-2xl font-bold font-mono text-white mt-1">{criteria.length} Kriteria</div>
-          <span className="text-[10px] text-emerald-400 font-mono">Metode ROC + TOPSIS</span>
+          <span className="text-[10px] text-emerald-400 font-mono">Algoritma ReLap Engine</span>
         </div>
       </div>
 
@@ -255,7 +255,7 @@ export function AdminPanelTabs({
       {tab === 'criteria' && (
         <div className="rounded-3xl bg-[#0e0e15]/80 border border-white/10 p-6 space-y-6">
           <div className="text-xs text-zinc-400">
-            6 Kriteria Acuan Keputusan SPK TOPSIS. Anda dapat menyesuaikan tipe benefit/cost dan nama tampilan.
+            6 Kriteria Acuan Keputusan Sistem ReLap. Anda dapat menyesuaikan tipe benefit/cost dan nama tampilan.
           </div>
           <div className="grid sm:grid-cols-2 gap-4">
             {criteria.map((c) => (

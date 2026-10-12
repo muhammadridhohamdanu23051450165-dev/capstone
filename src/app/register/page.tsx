@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import Image from 'next/image';
 
 export default async function RegisterPage({
   searchParams,
@@ -20,19 +21,24 @@ export default async function RegisterPage({
           <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-violet-500 via-indigo-500 to-cyan-400"></div>
 
           <div className="text-center mb-8">
-            <div className="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-gradient-to-br from-violet-600/30 via-indigo-600/20 to-cyan-500/30 border border-violet-500/30 text-white mb-4 shadow-[0_0_20px_rgba(124,58,237,0.3)]">
-              <svg className="w-6 h-6 text-cyan-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
-              </svg>
+            <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-[#070719] border border-white/10 p-1 mb-4 shadow-[0_0_20px_rgba(124,58,237,0.3)]">
+              <Image
+                src="/logo-relap.png"
+                alt="ReLap Logo"
+                width={48}
+                height={48}
+                className="w-full h-full object-contain"
+                priority
+              />
             </div>
             <h1 className="text-2xl font-extrabold text-white tracking-tight">
-              Buat{' '}
+              Bergabung dengan{' '}
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-violet-200 via-indigo-200 to-cyan-300">
-                Akun Baru
+                ReLap
               </span>
             </h1>
             <p className="text-xs text-zinc-400 mt-1.5 leading-relaxed">
-              Daftar langsung menggunakan email / Gmail Anda untuk menyimpan seluruh riwayat konsultasi laptop
+              Daftar menggunakan email untuk menyimpan seluruh riwayat rekomendasi laptop Anda
             </p>
           </div>
 
