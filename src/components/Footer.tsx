@@ -24,7 +24,7 @@ export function Footer() {
         {/* Kontak No HP / WhatsApp & Facebook */}
         <div className="flex items-center gap-3">
           <a
-            href="https://wa.me/6281234567890"
+            href="https://wa.me/6287851164239"
             target="_blank"
             rel="noopener noreferrer"
             className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium bg-emerald-950/40 hover:bg-emerald-900/50 text-emerald-300 border border-emerald-800/50 hover:border-emerald-600 transition shadow-sm"
@@ -32,7 +32,7 @@ export function Footer() {
             <svg className="w-3.5 h-3.5 text-emerald-400" fill="currentColor" viewBox="0 0 24 24">
               <path d="M12.031 6.172c-3.181 0-5.767 2.586-5.768 5.766-.001 1.298.38 2.27 1.019 3.287l-.711 2.598 2.669-.699c.969.54 1.772.825 2.791.826 3.182 0 5.768-2.587 5.768-5.766-.001-3.181-2.587-5.767-5.768-5.767zm3.393 8.163c-.144.405-.837.774-1.17.824-.312.045-.694.073-2.128-.521-1.615-.669-2.716-2.316-2.799-2.427-.083-.111-.663-.882-.663-1.682s.421-1.194.571-1.357c.149-.163.328-.204.437-.204.108 0 .217.001.312.006.101.005.236-.038.37.284.144.344.492 1.197.535 1.285.043.088.072.19.014.305-.058.115-.088.187-.174.288-.087.101-.183.226-.261.304-.088.087-.18.181-.077.357.103.176.458.756.983 1.224.675.602 1.244.788 1.42.875.176.087.279.073.383-.044.103-.118.444-.517.562-.693.118-.176.236-.147.397-.088.161.059 1.02.481 1.196.569.176.088.293.132.337.206.044.073.044.425-.1.83z" />
             </svg>
-            <span>No WhatsApp / Bantuan</span>
+            <span>WhatsApp (087851164239)</span>
           </a>
 
           <a

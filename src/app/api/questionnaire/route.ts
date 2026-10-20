@@ -107,16 +107,38 @@ export async function POST(req: NextRequest) {
       .not('price', 'is', null);
     const allLaptops = (allLaptopsRaw || []) as Laptop[];
 
-    let filtered = allLaptops.filter((l) => l.price >= jawaban.budget_min && l.price <= jawaban.budget_max);
-
     const isAllBrands = !merekPilihanHasSpecific(jawaban.merek_pilihan);
+    const brandsList = (Array.isArray(jawaban.merek_pilihan)
+      ? jawaban.merek_pilihan
+      : typeof jawaban.merek_pilihan === 'string'
+      ? (() => {
+          try {
+            return JSON.parse(jawaban.merek_pilihan);
+          } catch {
+            return [jawaban.merek_pilihan];
+          }
+        })()
+      : []) as string[];
+
+    // Kumpulan laptop kandidat yang diizinkan (strict sesuai merek jika dipilih)
+    let brandCandidateLaptops = allLaptops;
     if (!isAllBrands) {
-      const brandsList = (Array.isArray(jawaban.merek_pilihan) ? jawaban.merek_pilihan : []) as string[];
-      filtered = filtered.filter((l) => brandsList.some((b) => b.toLowerCase() === (l.brand || '').toLowerCase()));
+      brandCandidateLaptops = allLaptops.filter((l) => matchesBrand(l, brandsList));
     }
 
+    // Filter berdasarkan rentang budget pengguna
+    let filtered = brandCandidateLaptops.filter(
+      (l) => l.price >= jawaban.budget_min && l.price <= jawaban.budget_max
+    );
+
+    // Jika filter budget menghasilkan 0:
+    // Jika user memilih merek tertentu (misal ASUS), JANGAN PERNAH fallback ke merek lain!
     if (filtered.length === 0) {
-      filtered = allLaptops.slice(0, 50);
+      if (!isAllBrands && brandCandidateLaptops.length > 0) {
+        filtered = brandCandidateLaptops;
+      } else if (isAllBrands) {
+        filtered = allLaptops.slice(0, 50);
+      }
     }
 
     const topsisInserts: object[] = [];
@@ -126,7 +148,11 @@ export async function POST(req: NextRequest) {
     if (jawaban.kondisi_pilihan === 'baru' || jawaban.kondisi_pilihan === 'keduanya') {
       let laptopsBaru = filtered.filter((l) => (l.condition || 'baru').toLowerCase() === 'baru');
       if (laptopsBaru.length === 0) {
-        laptopsBaru = allLaptops.filter((l) => (l.condition || 'baru').toLowerCase() === 'baru').slice(0, 30);
+        if (!isAllBrands) {
+          laptopsBaru = brandCandidateLaptops.filter((l) => (l.condition || 'baru').toLowerCase() === 'baru');
+        } else {
+          laptopsBaru = allLaptops.filter((l) => (l.condition || 'baru').toLowerCase() === 'baru').slice(0, 30);
+        }
       }
 
       if (laptopsBaru.length > 0) {
@@ -148,7 +174,11 @@ export async function POST(req: NextRequest) {
     if (jawaban.kondisi_pilihan === 'second' || jawaban.kondisi_pilihan === 'keduanya') {
       let laptopsSecond = filtered.filter((l) => (l.condition || '').toLowerCase() === 'second');
       if (laptopsSecond.length === 0) {
-        laptopsSecond = allLaptops.filter((l) => (l.condition || '').toLowerCase() === 'second').slice(0, 30);
+        if (!isAllBrands) {
+          laptopsSecond = brandCandidateLaptops.filter((l) => (l.condition || '').toLowerCase() === 'second');
+        } else {
+          laptopsSecond = allLaptops.filter((l) => (l.condition || '').toLowerCase() === 'second').slice(0, 30);
+        }
       }
 
       if (laptopsSecond.length > 0) {
@@ -180,9 +210,36 @@ export async function POST(req: NextRequest) {
   }
 }
 
+function matchesBrand(l: Laptop, brandsList: string[]): boolean {
+  const lBrand = (l.brand || '').trim().toLowerCase();
+  const lName = (l.name || '').trim().toLowerCase();
+  return brandsList.some((b) => {
+    const target = b.trim().toLowerCase();
+    if (!target || target === 'semua') return true;
+    return (
+      lBrand === target ||
+      lBrand.includes(target) ||
+      target.includes(lBrand) ||
+      lName.startsWith(target) ||
+      lName.includes(` ${target} `) ||
+      lName.includes(target)
+    );
+  });
+}
+
 function merekPilihanHasSpecific(merek: string | string[]): boolean {
   if (Array.isArray(merek)) {
-    return merek.length > 0 && !merek.includes('semua');
+    return merek.length > 0 && !merek.includes('semua') && merek.some((m) => m && m.toLowerCase() !== 'semua');
+  }
+  if (typeof merek === 'string') {
+    try {
+      const parsed = JSON.parse(merek);
+      if (Array.isArray(parsed)) {
+        return parsed.length > 0 && !parsed.includes('semua') && parsed.some((m) => m && m.toLowerCase() !== 'semua');
+      }
+    } catch {
+      return merek.toLowerCase() !== 'semua' && merek.trim().length > 0;
+    }
   }
   return false;
 }

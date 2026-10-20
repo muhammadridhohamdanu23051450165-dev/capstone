@@ -3,6 +3,9 @@ import { getSession } from '@/lib/auth';
 import { supabase, Laptop, Kriteria, User } from '@/lib/supabase';
 import { AdminPanelTabs } from '@/components/AdminPanelTabs';
 
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 export default async function AdminDashboardPage({
   searchParams,
 }: {

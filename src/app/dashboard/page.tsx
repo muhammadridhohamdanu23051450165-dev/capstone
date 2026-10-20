@@ -3,6 +3,9 @@ import Link from 'next/link';
 import { getSession } from '@/lib/auth';
 import { supabase, KuisionerJawaban, Laptop, getLaptopImageUrl } from '@/lib/supabase';
 
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 export default async function DashboardPage() {
   const session = await getSession();
   if (!session) {

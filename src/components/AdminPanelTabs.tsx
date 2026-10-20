@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { Laptop, Kriteria, User } from '@/lib/supabase';
 
 interface Props {
@@ -32,6 +33,7 @@ export function AdminPanelTabs({
   success,
   error,
 }: Props) {
+  const router = useRouter();
   const [tab, setTab] = useState<'laptops' | 'criteria' | 'users'>(
     (initialTab as 'laptops' | 'criteria' | 'users') || 'laptops'
   );
@@ -39,6 +41,72 @@ export function AdminPanelTabs({
   const [modalLaptop, setModalLaptop] = useState<Partial<Laptop> | null>(null);
   const [isEdit, setIsEdit] = useState(false);
   const [modalCsv, setModalCsv] = useState(false);
+  const [isUploadingCsv, setIsUploadingCsv] = useState(false);
+  const [csvMessage, setCsvMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+
+  const downloadCsvTemplate = () => {
+    const csvContent =
+      'Nama,Brand,Harga,RAM,Storage,Baterai,Berat,Kondisi,Performa\n' +
+      'ASUS Vivobook 14 A1404ZA,ASUS,8499000,8,512,7.5,1.4,baru,75\n' +
+      'Lenovo Ideapad Gaming 3,Lenovo,11500000,16,512,5.0,2.2,second,82\n';
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', 'template_katalog_laptop.csv');
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  const handleCsvUpload = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const form = e.currentTarget;
+    const fileInput = form.elements.namedItem('csv_file') as HTMLInputElement | null;
+    if (!fileInput || !fileInput.files || fileInput.files.length === 0) {
+      setCsvMessage({ type: 'error', text: 'Silakan pilih berkas CSV terlebih dahulu' });
+      return;
+    }
+
+    setIsUploadingCsv(true);
+    setCsvMessage(null);
+
+    try {
+      const formData = new FormData();
+      formData.append('csv_file', fileInput.files[0]);
+
+      const res = await fetch('/api/admin/import', {
+        method: 'POST',
+        body: formData,
+        headers: {
+          Accept: 'application/json',
+        },
+      });
+
+      const data = await res.json();
+      if (!res.ok || data.error) {
+        throw new Error(data.error || 'Gagal mengimpor file CSV');
+      }
+
+      setCsvMessage({
+        type: 'success',
+        text: data.message || `Berhasil mengimpor ${data.count || 0} laptop!`,
+      });
+
+      setTimeout(() => {
+        setModalCsv(false);
+        setCsvMessage(null);
+        router.refresh();
+      }, 1500);
+    } catch (err: any) {
+      setCsvMessage({
+        type: 'error',
+        text: err?.message || 'Terjadi kesalahan saat memproses file CSV',
+      });
+    } finally {
+      setIsUploadingCsv(false);
+    }
+  };
 
   return (
     <div className="space-y-8">
@@ -494,46 +562,119 @@ export function AdminPanelTabs({
       {/* MODAL CSV IMPORT */}
       {modalCsv && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
-          <div className="w-full max-w-md p-6 rounded-3xl bg-[#0e0e15] border border-white/20 shadow-2xl space-y-4">
+          <div className="w-full max-w-lg p-6 rounded-3xl bg-[#0e0e15] border border-white/20 shadow-2xl space-y-4">
             <div className="flex items-center justify-between border-b border-white/10 pb-3">
-              <h3 className="text-sm font-bold text-white">Impor Data Laptop dari CSV</h3>
+              <div>
+                <h3 className="text-sm font-bold text-white flex items-center gap-2">
+                  <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                  Impor Data Laptop dari CSV
+                </h3>
+                <p className="text-[11px] text-zinc-400 mt-0.5">
+                  Sinkronisasi langsung ke database PostgreSQL Supabase & Vercel
+                </p>
+              </div>
               <button
                 type="button"
-                onClick={() => setModalCsv(false)}
-                className="text-zinc-400 hover:text-white text-xs cursor-pointer"
+                onClick={() => {
+                  if (!isUploadingCsv) {
+                    setModalCsv(false);
+                    setCsvMessage(null);
+                  }
+                }}
+                disabled={isUploadingCsv}
+                className="text-zinc-400 hover:text-white text-xs cursor-pointer disabled:opacity-50"
               >
                 ✕
               </button>
             </div>
+
+            {csvMessage && (
+              <div
+                className={`p-3 rounded-xl text-xs flex items-center gap-2 ${
+                  csvMessage.type === 'success'
+                    ? 'bg-emerald-950/60 border border-emerald-500/40 text-emerald-200'
+                    : 'bg-rose-950/60 border border-rose-500/40 text-rose-200'
+                }`}
+              >
+                <span>{csvMessage.type === 'success' ? '✓' : '⚠️'}</span>
+                <span>{csvMessage.text}</span>
+              </div>
+            )}
+
+            <div className="flex items-center justify-between p-3 rounded-xl bg-zinc-900/60 border border-white/5">
+              <div className="space-y-0.5">
+                <div className="text-[11px] font-semibold text-zinc-200">Belum punya format CSV?</div>
+                <div className="text-[10px] text-zinc-400">Unduh contoh template kolom yang sudah disesuaikan</div>
+              </div>
+              <button
+                type="button"
+                onClick={downloadCsvTemplate}
+                className="px-3 py-1.5 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-zinc-200 text-[11px] font-medium border border-white/10 transition flex items-center gap-1.5 cursor-pointer"
+              >
+                <svg className="w-3.5 h-3.5 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                </svg>
+                <span>Download Template</span>
+              </button>
+            </div>
+
             <form
               action="/api/admin/import"
               method="POST"
               encType="multipart/form-data"
+              onSubmit={handleCsvUpload}
               className="space-y-4 text-xs"
             >
-              <p className="text-zinc-400 leading-relaxed text-[11px]">
-                Unggah file CSV dengan header (Nama, Brand, Harga, RAM, Storage, Baterai, Berat, Kondisi, Performa).
-              </p>
-              <input
-                type="file"
-                name="csv_file"
-                accept=".csv,.txt"
-                required
-                className="w-full p-2.5 rounded-xl bg-zinc-950 border border-white/10 text-zinc-300"
-              />
+              <div className="space-y-1.5">
+                <label className="text-[11px] font-semibold text-zinc-300 block">
+                  Pilih File CSV (.csv / .txt)
+                </label>
+                <input
+                  type="file"
+                  name="csv_file"
+                  accept=".csv,.txt,text/csv,text/plain"
+                  required
+                  disabled={isUploadingCsv}
+                  className="w-full p-2.5 rounded-xl bg-zinc-950 border border-white/10 text-zinc-300 file:mr-3 file:py-1 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-violet-600 file:text-white hover:file:bg-violet-500 cursor-pointer disabled:opacity-50"
+                />
+                <p className="text-[10px] text-zinc-500 leading-relaxed">
+                  Kolom yang didukung: <span className="text-zinc-300 font-mono">Nama, Brand, Harga, RAM, Storage, Baterai, Berat, Kondisi, Performa</span>. Delimiter koma (,) atau titik-koma (;) dideteksi secara otomatis.
+                </p>
+              </div>
+
               <div className="flex items-center justify-end gap-2 pt-2 border-t border-white/10">
                 <button
                   type="button"
-                  onClick={() => setModalCsv(false)}
-                  className="px-4 py-2 rounded-xl text-zinc-400 hover:text-white cursor-pointer"
+                  onClick={() => {
+                    setModalCsv(false);
+                    setCsvMessage(null);
+                  }}
+                  disabled={isUploadingCsv}
+                  className="px-4 py-2 rounded-xl text-zinc-400 hover:text-white cursor-pointer disabled:opacity-50"
                 >
                   Batal
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold cursor-pointer"
+                  disabled={isUploadingCsv}
+                  className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold transition flex items-center gap-2 cursor-pointer shadow-md disabled:opacity-60 disabled:cursor-not-allowed"
                 >
-                  Upload & Impor CSV
+                  {isUploadingCsv ? (
+                    <>
+                      <svg className="w-4 h-4 animate-spin text-white" viewBox="0 0 24 24" fill="none">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
+                      </svg>
+                      <span>Mengunggah & Memproses...</span>
+                    </>
+                  ) : (
+                    <>
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                      </svg>
+                      <span>Upload & Impor CSV</span>
+                    </>
+                  )}
                 </button>
               </div>
             </form>

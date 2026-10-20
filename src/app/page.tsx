@@ -4,6 +4,9 @@ import { supabase, Laptop, getLaptopPerforma, getLaptopImageUrl } from '@/lib/su
 import { getSession } from '@/lib/auth';
 import { FeaturedLaptopsSection, LaptopItem } from '@/components/FeaturedLaptopsSection';
 
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 export default async function HomePage() {
   const session = await getSession();
 

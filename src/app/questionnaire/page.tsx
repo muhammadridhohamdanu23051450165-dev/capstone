@@ -4,6 +4,9 @@ import { getSession } from '@/lib/auth';
 import { supabase, KuisionerJawaban } from '@/lib/supabase';
 import { QuestionnaireForm } from '@/components/QuestionnaireForm';
 
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 export default async function QuestionnairePage({
   searchParams,
 }: {

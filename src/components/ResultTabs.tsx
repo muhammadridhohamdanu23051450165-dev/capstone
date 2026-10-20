@@ -171,80 +171,92 @@ export function ResultTabs({ hasilBaru, hasilSecond, kondisiPilihan }: Props) {
         )}
 
         {/* Link Pembelian Marketplace */}
-        <div className="pt-3.5 border-t border-white/10 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-          <div className="flex items-center gap-2 text-xs text-zinc-300">
-            <svg className="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
-            </svg>
-            <span className="font-semibold text-white">Cek Ketersediaan / Beli:</span>
-          </div>
-          <div className="flex flex-wrap items-center gap-2">
-            <a
-              href={item.shopee_url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-[#ee4d2d]/15 text-[#ff6740] hover:bg-[#ee4d2d] hover:text-white border border-[#ee4d2d]/30 transition shadow-sm"
-              title={`Cari '${item.brand} ${item.name}' di Shopee`}
-            >
-              <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M19.5 7.5h-2.25a5.25 5.25 0 0 0-10.5 0H4.5A1.5 1.5 0 0 0 3 9v11.25A2.25 2.25 0 0 0 5.25 22.5h13.5A2.25 2.25 0 0 0 21 20.25V9a1.5 1.5 0 0 0-1.5-1.5zm-7.5-3.75a3.75 3.75 0 0 1 3.75 3.75h-7.5a3.75 3.75 0 0 1 3.75-3.75z" />
-              </svg>
-              <span>Shopee</span>
-            </a>
+        {(() => {
+          const displayName = item.brand && !item.name.toLowerCase().startsWith(item.brand.toLowerCase())
+            ? `${item.brand} ${item.name}`
+            : item.name;
+          const formattedPrice = new Intl.NumberFormat('id-ID').format(item.price);
 
-            <a
-              href={item.tokopedia_url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-[#03ac0e]/15 text-[#42d14e] hover:bg-[#03ac0e] hover:text-white border border-[#03ac0e]/30 transition shadow-sm"
-              title={`Cari '${item.brand} ${item.name}' di Tokopedia`}
-            >
-              <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 14.5h-2v-2h2v2zm0-4h-2V7h2v5.5z" />
-              </svg>
-              <span>Tokopedia</span>
-            </a>
+          return (
+            <div className="pt-3.5 border-t border-white/10 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div className="flex flex-wrap items-center gap-2 text-xs text-zinc-300">
+                <svg className="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+                </svg>
+                <span className="font-semibold text-white">Cek Ketersediaan / Beli:</span>
+                <span className="text-[10px] font-mono text-emerald-400 bg-emerald-950/60 border border-emerald-800/50 px-2 py-0.5 rounded-md">
+                  Harga Sinkron ReLap (±Rp {formattedPrice})
+                </span>
+              </div>
+              <div className="flex flex-wrap items-center gap-2">
+                <a
+                  href={item.shopee_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-[#ee4d2d]/15 text-[#ff6740] hover:bg-[#ee4d2d] hover:text-white border border-[#ee4d2d]/30 transition shadow-sm"
+                  title={`Cari '${displayName}' di Shopee (Filter Sesuai Harga ReLap)`}
+                >
+                  <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M19.5 7.5h-2.25a5.25 5.25 0 0 0-10.5 0H4.5A1.5 1.5 0 0 0 3 9v11.25A2.25 2.25 0 0 0 5.25 22.5h13.5A2.25 2.25 0 0 0 21 20.25V9a1.5 1.5 0 0 0-1.5-1.5zm-7.5-3.75a3.75 3.75 0 0 1 3.75 3.75h-7.5a3.75 3.75 0 0 1 3.75-3.75z" />
+                  </svg>
+                  <span>Shopee</span>
+                </a>
 
-            <a
-              href={item.facebook_url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-[#1877f2]/15 text-[#4c9eff] hover:bg-[#1877f2] hover:text-white border border-[#1877f2]/30 transition shadow-sm"
-              title={`Cari '${item.brand} ${item.name}' di Facebook Marketplace`}
-            >
-              <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
-              </svg>
-              <span>Facebook</span>
-            </a>
+                <a
+                  href={item.tokopedia_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-[#03ac0e]/15 text-[#42d14e] hover:bg-[#03ac0e] hover:text-white border border-[#03ac0e]/30 transition shadow-sm"
+                  title={`Cari '${displayName}' di Tokopedia (Filter Sesuai Harga ReLap)`}
+                >
+                  <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 14.5h-2v-2h2v2zm0-4h-2V7h2v5.5z" />
+                  </svg>
+                  <span>Tokopedia</span>
+                </a>
 
-            <a
-              href={item.blibli_url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-[#0095da]/15 text-[#38bdf8] hover:bg-[#0095da] hover:text-white border border-[#0095da]/30 transition shadow-sm"
-              title={`Cari '${item.brand} ${item.name}' di Blibli`}
-            >
-              <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
-              </svg>
-              <span>Blibli</span>
-            </a>
+                <a
+                  href={item.facebook_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-[#1877f2]/15 text-[#4c9eff] hover:bg-[#1877f2] hover:text-white border border-[#1877f2]/30 transition shadow-sm"
+                  title={`Cari '${displayName}' di Facebook Marketplace (Filter Sesuai Harga ReLap)`}
+                >
+                  <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
+                  </svg>
+                  <span>Facebook</span>
+                </a>
 
-            <a
-              href={item.bukalapak_url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-[#e31e52]/15 text-[#fb7185] hover:bg-[#e31e52] hover:text-white border border-[#e31e52]/30 transition shadow-sm"
-              title={`Cari '${item.brand} ${item.name}' di Bukalapak`}
-            >
-              <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M12 3a9 9 0 0 0-9 9c0 4.97 4.03 9 9 9s9-4.03 9-9-4.03-9-9-9zm0 15c-3.31 0-6-2.69-6-6s2.69-6 6-6 6 2.69 6 6-2.69 6-6 6z" />
-              </svg>
-              <span>Bukalapak</span>
-            </a>
-          </div>
-        </div>
+                <a
+                  href={item.blibli_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-[#0095da]/15 text-[#38bdf8] hover:bg-[#0095da] hover:text-white border border-[#0095da]/30 transition shadow-sm"
+                  title={`Cari '${displayName}' di Blibli (Filter Sesuai Harga ReLap)`}
+                >
+                  <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
+                  </svg>
+                  <span>Blibli</span>
+                </a>
+
+                <a
+                  href={item.bukalapak_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-[#e31e52]/15 text-[#fb7185] hover:bg-[#e31e52] hover:text-white border border-[#e31e52]/30 transition shadow-sm"
+                  title={`Cari '${displayName}' di Bukalapak (Filter Sesuai Harga ReLap)`}
+                >
+                  <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M12 3a9 9 0 0 0-9 9c0 4.97 4.03 9 9 9s9-4.03 9-9-4.03-9-9-9zm0 15c-3.31 0-6-2.69-6-6s2.69-6 6-6 6 2.69 6 6-2.69 6-6 6z" />
+                  </svg>
+                  <span>Bukalapak</span>
+                </a>
+              </div>
+            </div>
+          );
+        })()}
       </div>
     );
   };

@@ -1,6 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { revalidatePath } from 'next/cache';
 import { getSession } from '@/lib/auth';
 import { supabase } from '@/lib/supabase';
+
+function triggerRevalidation() {
+  try {
+    revalidatePath('/admin/dashboard');
+    revalidatePath('/');
+    revalidatePath('/questionnaire');
+    revalidatePath('/riwayat');
+  } catch (e) {
+    console.warn('Revalidate warning:', e);
+  }
+}
 
 export async function POST(req: NextRequest) {
   try {
@@ -17,7 +29,8 @@ export async function POST(req: NextRequest) {
       await supabase.from('hasil_topsis').delete().eq('laptop_id', id);
       await supabase.from('penjelasan_ai').delete().eq('laptop_id', id);
       await supabase.from('laptops').delete().eq('id', id);
-      return NextResponse.redirect(new URL('/admin/dashboard?tab=laptops&success=Laptop berhasil dihapus', req.url));
+      triggerRevalidation();
+      return NextResponse.redirect(new URL('/admin/dashboard?tab=laptops&success=Laptop berhasil dihapus', req.url), 303);
     }
 
     if (action === 'PUT') {
@@ -44,7 +57,8 @@ export async function POST(req: NextRequest) {
         })
         .eq('id', id);
 
-      return NextResponse.redirect(new URL('/admin/dashboard?tab=laptops&success=Data laptop berhasil diperbarui', req.url));
+      triggerRevalidation();
+      return NextResponse.redirect(new URL('/admin/dashboard?tab=laptops&success=Data laptop berhasil diperbarui', req.url), 303);
     }
 
     // Default: Insert new laptop
@@ -66,9 +80,10 @@ export async function POST(req: NextRequest) {
       ram_gb, storage_gb, battery_hours, weight_kg, condition,
     });
 
-    return NextResponse.redirect(new URL('/admin/dashboard?tab=laptops&success=Data laptop berhasil ditambahkan', req.url));
+    triggerRevalidation();
+    return NextResponse.redirect(new URL('/admin/dashboard?tab=laptops&success=Data laptop berhasil ditambahkan', req.url), 303);
   } catch (error) {
     console.error('Admin laptop error:', error);
-    return NextResponse.redirect(new URL('/admin/dashboard?tab=laptops&error=Terjadi kesalahan pemrosesan', req.url));
+    return NextResponse.redirect(new URL('/admin/dashboard?tab=laptops&error=Terjadi kesalahan pemrosesan', req.url), 303);
   }
 }

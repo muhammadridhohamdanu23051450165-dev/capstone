@@ -4,6 +4,9 @@ import { getSession } from '@/lib/auth';
 import { supabase, KuisionerJawaban, Laptop, getLaptopImageUrl } from '@/lib/supabase';
 import { DeleteHistoryButton } from '@/components/DeleteHistoryButton';
 
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 export default async function HistoryPage({
   searchParams,
 }: {

@@ -99,7 +99,46 @@ export default async function RecommendationResultPage({
   function formatCard(item: any): LaptopResultCardProps {
     const performa = getLaptopPerforma(item);
     const imageUrl = getLaptopImageUrl(item);
-    const searchQuery = encodeURIComponent(`${item.brand || ''} ${item.name || ''}`.trim());
+
+    const brand = (item.brand || '').trim();
+    const rawName = (item.name || '').trim();
+    // Cegah duplikasi nama merek di query pencarian (misal: "ASUS ASUS TUF" -> "ASUS TUF")
+    const fullName = brand && !rawName.toLowerCase().startsWith(brand.toLowerCase())
+      ? `${brand} ${rawName}`
+      : rawName;
+    const searchQuery = encodeURIComponent(fullName);
+
+    // Filter rentang harga (±15%) agar pencarian di e-commerce langsung menampilkan laptop yang sesuai dengan harga ReLap, bukan aksesoris murah atau varian berbeda harga
+    const price = Number(item.price) || 0;
+    const pmin = price > 0 ? Math.floor(price * 0.85) : 0;
+    const pmax = price > 0 ? Math.ceil(price * 1.15) : 0;
+    const isSecond = (item.kondisi || '').toLowerCase() === 'second';
+
+    // Tokopedia: parameter pmin & pmax dan fcond (1=baru, 2=bekas)
+    const tokpedCond = isSecond ? '&fcond=2' : '&fcond=1';
+    const tokopediaUrl = price > 0
+      ? `https://www.tokopedia.com/search?st=product&q=${searchQuery}&pmin=${pmin}&pmax=${pmax}${tokpedCond}&sort=23`
+      : `https://www.tokopedia.com/search?st=product&q=${searchQuery}`;
+
+    // Shopee: parameter minPrice & maxPrice
+    const shopeeUrl = price > 0
+      ? `https://shopee.co.id/search?keyword=${searchQuery}&minPrice=${pmin}&maxPrice=${pmax}`
+      : `https://shopee.co.id/search?keyword=${searchQuery}`;
+
+    // Facebook Marketplace: minPrice & maxPrice
+    const facebookUrl = price > 0
+      ? `https://www.facebook.com/marketplace/search/?query=${searchQuery}&minPrice=${pmin}&maxPrice=${pmax}`
+      : `https://www.facebook.com/marketplace/search/?query=${searchQuery}`;
+
+    // Blibli: minPrice & maxPrice
+    const blibliUrl = price > 0
+      ? `https://www.blibli.com/cari/${searchQuery}?minPrice=${pmin}&maxPrice=${pmax}`
+      : `https://www.blibli.com/cari/${searchQuery}`;
+
+    // Bukalapak: search[price_min] & search[price_max]
+    const bukalapakUrl = price > 0
+      ? `https://www.bukalapak.com/products?search%5Bkeywords%5D=${searchQuery}&search%5Bprice_min%5D=${pmin}&search%5Bprice_max%5D=${pmax}`
+      : `https://www.bukalapak.com/products?search%5Bkeywords%5D=${searchQuery}`;
 
     return {
       id: item.id,
@@ -117,11 +156,11 @@ export default async function RecommendationResultPage({
       weight_kg: item.weight_kg,
       performa,
       image_url: imageUrl,
-      shopee_url: `https://shopee.co.id/search?keyword=${searchQuery}`,
-      tokopedia_url: `https://www.tokopedia.com/search?st=product&q=${searchQuery}`,
-      facebook_url: `https://www.facebook.com/marketplace/search/?query=${searchQuery}`,
-      blibli_url: `https://www.blibli.com/cari/${searchQuery}`,
-      bukalapak_url: `https://www.bukalapak.com/products?search%5Bkeywords%5D=${searchQuery}`,
+      shopee_url: shopeeUrl,
+      tokopedia_url: tokopediaUrl,
+      facebook_url: facebookUrl,
+      blibli_url: blibliUrl,
+      bukalapak_url: bukalapakUrl,
       narasi: explanationsMap[item.laptop_id],
     };
   }

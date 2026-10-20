@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { revalidatePath } from 'next/cache';
 import { getSession } from '@/lib/auth';
 import { supabase } from '@/lib/supabase';
 
@@ -21,9 +22,16 @@ export async function POST(req: NextRequest) {
       .update({ nama, tipe, bobot, deskripsi, updated_at: new Date().toISOString() })
       .eq('id', id);
 
-    return NextResponse.redirect(new URL('/admin/dashboard?tab=criteria&success=Kriteria berhasil diperbarui', req.url));
+    try {
+      revalidatePath('/admin/dashboard');
+      revalidatePath('/questionnaire');
+    } catch (e) {
+      console.warn('Revalidate warning:', e);
+    }
+
+    return NextResponse.redirect(new URL('/admin/dashboard?tab=criteria&success=Kriteria berhasil diperbarui', req.url), 303);
   } catch (error) {
     console.error('Update criteria error:', error);
-    return NextResponse.redirect(new URL('/admin/dashboard?tab=criteria&error=Gagal memperbarui kriteria', req.url));
+    return NextResponse.redirect(new URL('/admin/dashboard?tab=criteria&error=Gagal memperbarui kriteria', req.url), 303);
   }
 }
